@@ -1,26 +1,21 @@
-"""
-URL configuration for Healthcare AI Assistant API.
-"""
-
 from django.urls import path
 from . import views
 
 app_name = 'assistant'
 
 urlpatterns = [
-    # Chat endpoints
-    path('chat/', views.ChatWithAssistantView.as_view(), name='chat'),
+    # Chat
+    path('chat/', views.chat, name='chat'),
     
-    # Conversation management
-    path('conversations/', views.ConversationListView.as_view(), name='conversation-list'),
-    path('conversations/<int:conversation_id>/', views.ConversationDetailView.as_view(), name='conversation-detail'),
+    # Conversations
+    path('conversations/', views.conversations, name='conversations'),
+    path('conversations/<int:conversation_id>/', views.conversation_detail, name='conversation-detail'),
     
-    # Health insights and recommendations
-    path('health-summary/', views.HealthSummaryView.as_view(), name='health-summary'),
-    path('wellness-recommendations/', views.WellnessRecommendationsView.as_view(), name='wellness-recommendations'),
-    path('insights/', views.HealthInsightsView.as_view(), name='health-insights'),
+    # Health insights
+    path('summary/', views.health_summary, name='health-summary'),
+    path('insights/', views.insights, name='insights'),
+    path('insights/<int:insight_id>/read/', views.mark_insight_read, name='mark-insight-read'),
     
-    # Tools and status
-    path('tools/', views.AvailableToolsView.as_view(), name='available-tools'),
-    path('status/', views.get_assistant_status, name='assistant-status'),
+    # Email alert
+    path('send-alert/', views.send_alert, name='send-alert'),
 ]
