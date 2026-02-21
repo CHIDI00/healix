@@ -7,10 +7,15 @@ Integrates Google's Gemini API with RAG and tool support for healthcare professi
 from __future__ import annotations
 
 import json
+import os
 import logging
 from typing import List, Dict, Any, Optional, TYPE_CHECKING
 from .tools import send_emergency_email, generate_health_records
 from .rag import HealthDataRAG
+from dotenv import load_dotenv
+
+load_dotenv()
+
 
 if TYPE_CHECKING:
     from django.contrib.auth.models import User
@@ -69,7 +74,7 @@ When analyzing health data:
                     GEMINI_API_KEY environment variable
         """
         import os
-        self.api_key = api_key or os.getenv('GEMINI_API_KEY')
+        self.api_key = os.getenv('GEMINI_API_KEY')
         
         if not self.api_key:
             raise ValueError("GEMINI_API_KEY not provided and not found in environment variables")
