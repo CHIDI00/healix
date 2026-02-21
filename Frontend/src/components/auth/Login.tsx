@@ -17,7 +17,11 @@ const Login = ({ onLogin }: LoginProps) => {
   const [error, setError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
 
-  const API_BASE_URL = `${import.meta.env.VITE_API_BASE_URL}auth`;
+  const configuredApiBaseUrl = (import.meta.env.VITE_API_BASE_URL ?? "").trim();
+  const apiBaseUrl = (
+    configuredApiBaseUrl || "http://127.0.0.1:8000/api"
+  ).replace(/\/+$/, "");
+  const API_BASE_URL = `${apiBaseUrl}/auth`;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -33,10 +37,23 @@ const Login = ({ onLogin }: LoginProps) => {
         body: JSON.stringify({ username, password }),
       });
 
-      const data = await response.json();
+      const contentType = response.headers.get("content-type") || "";
+      const data = contentType.includes("application/json")
+        ? await response.json()
+        : null;
 
       if (!response.ok) {
-        throw new Error(data.detail || "Invalid username or password");
+        if (!data || typeof data !== "object") {
+          throw new Error(`Login failed (HTTP ${response.status})`);
+        }
+        throw new Error(
+          (data as { detail?: string }).detail ||
+            "Invalid username or password",
+        );
+      }
+
+      if (!data || typeof data !== "object") {
+        throw new Error("Login failed due to an invalid server response");
       }
 
       localStorage.setItem("healix_token", data.token);

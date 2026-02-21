@@ -31,7 +31,11 @@ const Signup = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  const API_BASE_URL = `${import.meta.env.VITE_API_BASE_URL}auth`;
+  const configuredApiBaseUrl = (import.meta.env.VITE_API_BASE_URL ?? "").trim();
+  const apiBaseUrl = (
+    configuredApiBaseUrl || "http://127.0.0.1:8000/api"
+  ).replace(/\/+$/, "");
+  const API_BASE_URL = `${apiBaseUrl}/auth`;
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -63,9 +67,16 @@ const Signup = () => {
         body: JSON.stringify(formData),
       });
 
-      const data = await response.json();
+      const contentType = response.headers.get("content-type") || "";
+      const data = contentType.includes("application/json")
+        ? await response.json()
+        : null;
 
       if (!response.ok) {
+        if (!data || typeof data !== "object") {
+          throw new Error(`Registration failed (HTTP ${response.status})`);
+        }
+
         const firstErrorKey = Object.keys(data)[0];
         const errorMessage = Array.isArray(data[firstErrorKey])
           ? data[firstErrorKey][0]
