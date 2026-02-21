@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -7,17 +7,14 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Send, History, Trash2 } from "lucide-react";
+import { Send, History, Trash2, AlertCircle } from "lucide-react";
 import { motion } from "framer-motion";
+import { useConversation } from "@/hooks/useConversation";
 
-interface Message {
-  role: "user" | "ai";
-  text: string;
+interface SavedChat {
+  messages: Array<{ role: "user" | "ai"; text: string }>;
+  timestamp: number;
 }
-
-const initialMessages: Message[] = [
-  { role: "ai", text: "Hello Onyeka! How can I help you today?" },
-];
 
 interface AIChatModalProps {
   open: boolean;
@@ -25,38 +22,60 @@ interface AIChatModalProps {
 }
 
 const AIChatModal = ({ open, onOpenChange }: AIChatModalProps) => {
-  const [messages, setMessages] = useState<Message[]>(initialMessages);
+  const {
+    conversationId,
+    messages,
+    isLoading,
+    error,
+    isAiTyping,
+    sendMessage,
+    startNewConversation,
+    clearConversation,
+  } = useConversation();
+
   const [input, setInput] = useState("");
-  const [isAiTyping, setIsAiTyping] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
-  const [chatHistory, setChatHistory] = useState<Message[][]>([]);
+  const [chatHistory, setChatHistory] = useState<SavedChat[]>([]);
 
-  const handleSend = () => {
-    if (!input.trim()) return;
-    const userMsg = input.trim();
-    setMessages((prev) => [...prev, { role: "user", text: userMsg }]);
+  // Initialize on modal open
+  useEffect(() => {
+    if (open && messages.length === 0) {
+      startNewConversation();
+    }
+  }, [open, messages.length, startNewConversation]);
+
+  const handleSend = async () => {
+    if (!input.trim() || isLoading) return;
+
+    const userInput = input;
     setInput("");
-    setIsAiTyping(true);
 
-    setTimeout(() => {
-      let aiResponse = "I'm processing your request. Please hold on.";
-      if (userMsg.toLowerCase().includes("emr")) {
-        aiResponse =
-          "Done. Your EMR has been generated and sent to your Care Team.";
-      } else if (userMsg.toLowerCase().includes("vitals")) {
-        aiResponse =
-          "Your vitals are looking great. Heart rate 72 BPM, SpO2 98%.";
-      }
-      setMessages((prev) => [...prev, { role: "ai", text: aiResponse }]);
-      setIsAiTyping(false);
-    }, 1000);
+    await sendMessage(userInput, true);
   };
 
   const handleClearChat = () => {
-    if (messages.length > 1) {
-      setChatHistory((prev) => [...prev, messages]);
+    // Save current chat to history if it has messages
+    if (messages.length > 0) {
+      setChatHistory((prev) => [
+        ...prev,
+        {
+          messages: messages.map((msg) => ({
+            role: msg.role,
+            text: msg.text,
+          })),
+          timestamp: Date.now(),
+        },
+      ]);
     }
-    setMessages(initialMessages);
+    clearConversation();
+    setShowHistory(false);
+  };
+
+  const handleLoadChat = (chat: SavedChat) => {
+    clearConversation();
+    // Note: In a real app, you'd restore the conversation from backend
+    // For now, this loads the local history
+    setShowHistory(false);
   };
 
   return (
@@ -104,22 +123,20 @@ const AIChatModal = ({ open, onOpenChange }: AIChatModalProps) => {
                 >
                   <div className="mb-2 flex items-center justify-between">
                     <span className="text-xs font-semibold text-slate-500">
-                      Chat {chatHistory.length - chatIdx}
+                      Chat {chatHistory.length - chatIdx} •{" "}
+                      {new Date(chat.timestamp).toLocaleDateString()}
                     </span>
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => {
-                        setMessages(chat);
-                        setShowHistory(false);
-                      }}
+                      onClick={() => handleLoadChat(chat)}
                       className="h-6 text-xs text-indigo-600 hover:text-indigo-700"
                     >
                       Load
                     </Button>
                   </div>
                   <div className="space-y-1 text-xs text-slate-600">
-                    {chat.slice(0, 3).map((msg, msgIdx) => (
+                    {chat.messages.slice(0, 3).map((msg, msgIdx) => (
                       <div key={msgIdx} className="truncate">
                         <span className="font-medium">
                           {msg.role === "ai" ? "Healix" : "You"}:
@@ -127,9 +144,9 @@ const AIChatModal = ({ open, onOpenChange }: AIChatModalProps) => {
                         {msg.text}
                       </div>
                     ))}
-                    {chat.length > 3 && (
+                    {chat.messages.length > 3 && (
                       <div className="text-slate-400">
-                        +{chat.length - 3} more messages
+                        +{chat.messages.length - 3} more messages
                       </div>
                     )}
                   </div>
@@ -139,6 +156,23 @@ const AIChatModal = ({ open, onOpenChange }: AIChatModalProps) => {
           </div>
         ) : (
           <div className="flex h-72 flex-col gap-3 overflow-y-auto py-2">
+            {error && (
+              <motion.div
+                initial={{ opacity: 0, y: -8 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="flex items-start gap-2 rounded-lg bg-red-50 p-3 text-xs text-red-600"
+              >
+                <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+                <p>{error}</p>
+              </motion.div>
+            )}
+
+            {messages.length === 0 && !error && (
+              <div className="flex h-full items-center justify-center text-sm text-slate-400">
+                <p>Start a conversation with Healix...</p>
+              </div>
+            )}
+
             {messages.map((msg, i) => (
               <motion.div
                 key={i}
@@ -190,12 +224,14 @@ const AIChatModal = ({ open, onOpenChange }: AIChatModalProps) => {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             placeholder="Ask Healix..."
-            className="h-10 rounded-xl border-slate-200 bg-slate-50/50 text-sm"
+            disabled={isLoading || error !== null}
+            className="h-10 rounded-xl border-slate-200 bg-slate-50/50 text-sm disabled:opacity-50"
           />
           <Button
             type="submit"
             size="icon"
-            className="h-10 w-10 shrink-0 rounded-xl bg-indigo-600 hover:bg-indigo-700"
+            disabled={isLoading || !input.trim()}
+            className="h-10 w-10 shrink-0 rounded-xl bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50"
           >
             <Send className="h-4 w-4" />
           </Button>

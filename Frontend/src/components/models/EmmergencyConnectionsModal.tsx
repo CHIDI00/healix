@@ -1,5 +1,10 @@
 import { useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
@@ -11,18 +16,39 @@ interface EmergencyConnectionsModalProps {
 }
 
 const initialContacts = [
-  { id: "1", name: "Dr. Chinedu Okafor", email: "chinedu.okafor@hospital.ng", role: "Primary Physician" },
-  { id: "2", name: "Adaeze Joshua", email: "adaeze.joshua@gmail.com", role: "Emergency Contact" },
+  {
+    id: "1",
+    name: "Dr. Chinedu Okafor",
+    email: "chinedu.okafor@hospital.ng",
+    role: "Primary Physician",
+  },
+  {
+    id: "2",
+    name: "Adaeze Joshua",
+    email: "adaeze.joshua@gmail.com",
+    role: "Emergency Contact",
+  },
 ];
 
-const EmergencyConnectionsModal = ({ open, onOpenChange }: EmergencyConnectionsModalProps) => {
+const EmergencyConnectionsModal = ({
+  open,
+  onOpenChange,
+}: EmergencyConnectionsModalProps) => {
   const [contacts, setContacts] = useState(initialContacts);
   const [newEmail, setNewEmail] = useState("");
   const [newName, setNewName] = useState("");
 
   const addContact = () => {
     if (!newEmail.trim() || !newName.trim()) return;
-    setContacts((prev) => [...prev, { id: Date.now().toString(), name: newName.trim(), email: newEmail.trim(), role: "Care Team" }]);
+    setContacts((prev) => [
+      ...prev,
+      {
+        id: Date.now().toString(),
+        name: newName.trim(),
+        email: newEmail.trim(),
+        role: "Care Team",
+      },
+    ]);
     setNewEmail("");
     setNewName("");
   };
@@ -35,14 +61,17 @@ const EmergencyConnectionsModal = ({ open, onOpenChange }: EmergencyConnectionsM
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg border-slate-200 bg-[#FAFAFA] overflow-y-auto h-[36rem] sm:max-w-2xl">
         <DialogHeader>
-          <DialogTitle className="text-xl font-semibold text-slate-800">Emergency Connections</DialogTitle>
+          <DialogTitle className="text-xl font-semibold text-slate-800">
+            Emergency Connections
+          </DialogTitle>
         </DialogHeader>
 
         {/* Alert Info */}
         <div className="flex items-start gap-3 rounded-xl border border-red-100 bg-red-50/50 p-4">
           <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-red-500" />
           <p className="text-xs text-slate-600">
-            These contacts will be auto-notified during critical health events. Ensure all emails are accurate.
+            These contacts will be auto-notified during critical health events.
+            Ensure all details are accurate.
           </p>
         </div>
 
@@ -63,12 +92,16 @@ const EmergencyConnectionsModal = ({ open, onOpenChange }: EmergencyConnectionsM
                     <Phone className="h-4 w-4 text-indigo-500" />
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-slate-700">{contact.name}</p>
+                    <p className="text-sm font-medium text-slate-700">
+                      {contact.name}
+                    </p>
                     <div className="flex items-center gap-1.5">
                       <Mail className="h-3 w-3 text-slate-400" />
                       <p className="text-xs text-slate-400">{contact.email}</p>
                     </div>
-                    <span className="text-[10px] font-medium text-indigo-500">{contact.role}</span>
+                    <span className="text-[10px] font-medium text-indigo-500">
+                      {contact.role}
+                    </span>
                   </div>
                 </div>
                 <button
@@ -84,7 +117,9 @@ const EmergencyConnectionsModal = ({ open, onOpenChange }: EmergencyConnectionsM
 
         {/* Add New Contact */}
         <div className="space-y-4 rounded-xl border border-dashed border-slate-200 bg-white p-4">
-          <p className="text-xs font-medium uppercase tracking-widest text-slate-400">Add Contact</p>
+          <p className="text-xs font-medium uppercase tracking-widest text-slate-400">
+            Add Contact
+          </p>
           <Input
             value={newName}
             onChange={(e) => setNewName(e.target.value)}
@@ -108,7 +143,9 @@ const EmergencyConnectionsModal = ({ open, onOpenChange }: EmergencyConnectionsM
           </Button>
         </div>
 
-        <p className="text-center text-xs text-slate-400">Auto-dispatch enabled for critical alerts</p>
+        <p className="text-center text-xs text-slate-400">
+          Auto-dispatch enabled for critical alerts
+        </p>
       </DialogContent>
     </Dialog>
   );
