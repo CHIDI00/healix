@@ -53,15 +53,13 @@ const Signup = () => {
     setIsLoading(true);
     setError(null);
 
-    const { password2, ...payloadData } = formData;
-
     try {
       const response = await fetch(`${API_BASE_URL}/register/`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(payloadData),
+        body: JSON.stringify(formData),
       });
 
       const data = await response.json();
@@ -100,7 +98,7 @@ const Signup = () => {
         <div className="mb-8 text-center">
           <div className="mb-3 flex items-center justify-center gap-2">
             <Sparkles className="h-7 w-7 text-indigo-500" />
-            <h1 className="text-3xl font-semibold tracking-tight text-slate-800">OmniCare AI</h1>
+            <h1 className="text-3xl font-semibold tracking-tight text-slate-800">Helix</h1>
           </div>
           <p className="text-sm text-slate-400">Join your unified health partner.</p>
         </div>
