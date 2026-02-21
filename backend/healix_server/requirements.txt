@@ -1,5 +1,6 @@
-google-genai
+google-generativeai
 django
 djangorestframework
 django-cleanup
 django-cors-headers
+python-dotenv

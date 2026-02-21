@@ -29,4 +29,7 @@ urlpatterns = [
     path('api/auth/profile/', views.user_profile, name='profile'),
     path('api/auth/profile/update/', views.update_profile, name='update-profile'),
     path('api/auth/users/', views.user_list, name='user-list'),
+    
+    # AI ASSISTANT ENDPOINTS
+    path('api/assistant/', include('healix_server.assistant.urls')),
 ]
