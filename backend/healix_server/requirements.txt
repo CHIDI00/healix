@@ -1,0 +1,5 @@
+google-genai
+django
+djangorestframework
+django-cleanup
+django-cors-headers
