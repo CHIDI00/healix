@@ -145,7 +145,7 @@ const Dashboard = ({ onLogout }: DashboardProps) => {
       <div className=" flex flex-1 items-center justify-center">
         <motion.button
           onClick={() => setChatOpen(true)}
-          className="relative group flex h-56 w-56 flex-col items-center justify-center rounded-full "
+          className="relative group flex h-56 w-56 flex-col items-center justify-center rounded-full"
           style={{
             boxShadow: spikeActive
               ? "0 0 60px rgba(239,68,68,0.4)"
