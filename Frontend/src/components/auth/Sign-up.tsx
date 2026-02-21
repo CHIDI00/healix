@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Sparkles, AlertCircle, Loader2, Eye, EyeOff } from "lucide-react";
+import { AlertCircle, Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Link, useNavigate } from "react-router-dom";
+import logo from "../../asset/healixlogo.png";
 
 interface FormData {
   first_name: string;
@@ -97,7 +98,7 @@ const Signup = () => {
       >
         <div className="mb-8 text-center">
           <div className="mb-3 flex items-center justify-center gap-2">
-            <Sparkles className="h-7 w-7 text-indigo-500" />
+            <img src={logo} alt="Healix logo" className="w-6 h-auto" />
             <h1 className="text-3xl font-semibold tracking-tight text-slate-800">Helix</h1>
           </div>
           <p className="text-sm text-slate-400">Join your unified health partner.</p>
@@ -196,18 +197,8 @@ const Signup = () => {
             </button>
           </div>
 
-          <Button
-            type="submit"
-            disabled={isLoading}
-            className="mt-2 h-12 w-full rounded-xl bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 disabled:opacity-70"
-          >
-            {isLoading ? (
-              <>
-                <Loader2 className="mr-2 h-5 w-5 animate-spin" /> Creating Account...
-              </>
-            ) : (
-              "Create Account"
-            )}
+          <Button type="submit" className="mt-2 h-12 w-full rounded-xl bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700">
+            Create Account
           </Button>
         </form>
 

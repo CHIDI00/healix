@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import Login from "./components/auth/Login";
 import Signup from "./components/auth/Sign-up";
+import Dashboard from "./pages/Dashboard";
 
 const queryClient = new QueryClient();
 
@@ -24,6 +25,7 @@ const App = () => (
           <Route path="/" element={<Index />} />
           <Route path="/login" element={<Login onLogin={() => {}} />} />
           <Route path="/signup" element={<Signup />} />
+          <Route path="/dashboard" element={<Dashboard />} />
         </Routes>
       </BrowserRouter>
     </TooltipProvider>
