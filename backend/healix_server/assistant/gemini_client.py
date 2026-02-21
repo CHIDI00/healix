@@ -1,12 +1,16 @@
 import logging
+import os
 from .rag import get_health_context
 from .tools import send_health_alert
+from dotenv import load_dotenv
 
+load_dotenv()
 logger = logging.getLogger(__name__)
 
 class SimpleHealthAssistant:
     def __init__(self):
-        self.api_key = "AIzaSyB869i9kx1ndeQGuMaXndLMKPo9DievwFs"
+        self.api_key = os.environ.get('GEMINI_API_KEY')
+        
         
         try:
             from google import genai

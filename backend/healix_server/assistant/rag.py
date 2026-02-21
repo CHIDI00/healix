@@ -5,6 +5,7 @@ def get_health_context(user):
     """Get basic health context for a user"""
     context = []
     
+    
     # Latest vitals
     vitals = VitalSigns.objects.filter(user=user).order_by('-timestamp').first()
     if vitals:
@@ -26,4 +27,5 @@ def get_health_context(user):
     if sleep:
         context.append(f"Last sleep: {sleep.sleep_duration}min")
     
+
     return "\n".join(context) if context else "No recent health data"
