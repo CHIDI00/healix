@@ -40,7 +40,7 @@ INSTALLED_APPS = [
     
     # Local apps
     'healix_server',
-    'healix_server.assistant',
+    'assistant',
     
     # Third-party apps
     'rest_framework',
