@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Sparkles } from "lucide-react";
+import { Sparkles, AlertCircle, Loader2, Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 interface FormData {
   first_name: string;
@@ -14,11 +14,8 @@ interface FormData {
   password2: string;
 }
 
-interface SignupProps {
-  onSignup: (data: FormData) => void;
-}
-
-const Signup = ({ onSignup }: SignupProps) => {
+const Signup = () => {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState<FormData>({
     first_name: "",
     last_name: "",
@@ -28,14 +25,61 @@ const Signup = ({ onSignup }: SignupProps) => {
     password2: "",
   });
 
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  const API_BASE_URL = `${import.meta.env.VITE_API_BASE_URL}auth`;
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    onSignup(formData);
+
+    if (formData.password !== formData.password2) {
+      setError("Passwords do not match.");
+      return;
+    }
+
+    if (formData.password.length < 8) {
+      setError("Password must be at least 8 characters long.");
+      return;
+    }
+
+    setIsLoading(true);
+    setError(null);
+
+    const { password2, ...payloadData } = formData;
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/register/`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payloadData),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        const firstErrorKey = Object.keys(data)[0];
+        const errorMessage = Array.isArray(data[firstErrorKey]) ? data[firstErrorKey][0] : "Registration failed. Please check your details.";
+
+        throw new Error(`${firstErrorKey}: ${errorMessage}`);
+      }
+
+      navigate("/login");
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : String(err);
+      setError(errorMessage.replace("_", " "));
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -56,10 +100,17 @@ const Signup = ({ onSignup }: SignupProps) => {
         <div className="mb-8 text-center">
           <div className="mb-3 flex items-center justify-center gap-2">
             <Sparkles className="h-7 w-7 text-indigo-500" />
-            <h1 className="text-3xl font-semibold tracking-tight text-slate-800">Helix</h1>
+            <h1 className="text-3xl font-semibold tracking-tight text-slate-800">OmniCare AI</h1>
           </div>
           <p className="text-sm text-slate-400">Join your unified health partner.</p>
         </div>
+
+        {error && (
+          <div className="mb-6 flex items-center gap-2 rounded-lg bg-rose-50 p-4 text-sm capitalize text-rose-600 border border-rose-100">
+            <AlertCircle className="h-4 w-4 shrink-0" />
+            <p>{error}</p>
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid grid-cols-2 gap-4">
@@ -69,7 +120,7 @@ const Signup = ({ onSignup }: SignupProps) => {
               placeholder="First name"
               value={formData.first_name}
               onChange={handleChange}
-              required
+              disabled={isLoading}
               className="h-12 rounded-xl border-slate-200 bg-slate-50/50 text-slate-800 placeholder:text-slate-400 focus-visible:ring-2 focus-visible:ring-indigo-100 focus-visible:ring-offset-0"
             />
             <Input
@@ -78,7 +129,7 @@ const Signup = ({ onSignup }: SignupProps) => {
               placeholder="Last name"
               value={formData.last_name}
               onChange={handleChange}
-              required
+              disabled={isLoading}
               className="h-12 rounded-xl border-slate-200 bg-slate-50/50 text-slate-800 placeholder:text-slate-400 focus-visible:ring-2 focus-visible:ring-indigo-100 focus-visible:ring-offset-0"
             />
           </div>
@@ -90,6 +141,7 @@ const Signup = ({ onSignup }: SignupProps) => {
             value={formData.username}
             onChange={handleChange}
             required
+            disabled={isLoading}
             className="h-12 rounded-xl border-slate-200 bg-slate-50/50 text-slate-800 placeholder:text-slate-400 focus-visible:ring-2 focus-visible:ring-indigo-100 focus-visible:ring-offset-0"
           />
 
@@ -100,31 +152,64 @@ const Signup = ({ onSignup }: SignupProps) => {
             value={formData.email}
             onChange={handleChange}
             required
+            disabled={isLoading}
             className="h-12 rounded-xl border-slate-200 bg-slate-50/50 text-slate-800 placeholder:text-slate-400 focus-visible:ring-2 focus-visible:ring-indigo-100 focus-visible:ring-offset-0"
           />
 
-          <Input
-            type="password"
-            name="password"
-            placeholder="Password"
-            value={formData.password}
-            onChange={handleChange}
-            required
-            className="h-12 rounded-xl border-slate-200 bg-slate-50/50 text-slate-800 placeholder:text-slate-400 focus-visible:ring-2 focus-visible:ring-indigo-100 focus-visible:ring-offset-0"
-          />
+          <div className="relative">
+            <Input
+              type={showPassword ? "text" : "password"}
+              name="password"
+              placeholder="Password"
+              value={formData.password}
+              onChange={handleChange}
+              required
+              disabled={isLoading}
+              className="h-12 rounded-xl border-slate-200 bg-slate-50/50 pr-10 text-slate-800 placeholder:text-slate-400 focus-visible:ring-2 focus-visible:ring-indigo-100 focus-visible:ring-offset-0"
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+              disabled={isLoading}
+            >
+              {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+            </button>
+          </div>
 
-          <Input
-            type="password"
-            name="password2"
-            placeholder="Confirm password"
-            value={formData.password2}
-            onChange={handleChange}
-            required
-            className="h-12 rounded-xl border-slate-200 bg-slate-50/50 text-slate-800 placeholder:text-slate-400 focus-visible:ring-2 focus-visible:ring-indigo-100 focus-visible:ring-offset-0"
-          />
+          <div className="relative">
+            <Input
+              type={showConfirmPassword ? "text" : "password"}
+              name="password2"
+              placeholder="Confirm password"
+              value={formData.password2}
+              onChange={handleChange}
+              required
+              disabled={isLoading}
+              className="h-12 rounded-xl border-slate-200 bg-slate-50/50 pr-10 text-slate-800 placeholder:text-slate-400 focus-visible:ring-2 focus-visible:ring-indigo-100 focus-visible:ring-offset-0"
+            />
+            <button
+              type="button"
+              onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+              disabled={isLoading}
+            >
+              {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+            </button>
+          </div>
 
-          <Button type="submit" className="mt-2 h-12 w-full rounded-xl bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700">
-            Create Account
+          <Button
+            type="submit"
+            disabled={isLoading}
+            className="mt-2 h-12 w-full rounded-xl bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 disabled:opacity-70"
+          >
+            {isLoading ? (
+              <>
+                <Loader2 className="mr-2 h-5 w-5 animate-spin" /> Creating Account...
+              </>
+            ) : (
+              "Create Account"
+            )}
           </Button>
         </form>
 
