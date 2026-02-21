@@ -74,7 +74,7 @@ When analyzing health data:
                     GEMINI_API_KEY environment variable
         """
         import os
-        self.api_key = os.getenv('GEMINI_API_KEY')
+        self.api_key = "AIzaSyC6doCf6_oolNt4roxCJbrhAMxsFNwN9e0"
         
         if not self.api_key:
             raise ValueError("GEMINI_API_KEY not provided and not found in environment variables")
@@ -83,7 +83,7 @@ When analyzing health data:
             from google import genai
             
             # Initialize client with API key for Gemini 2.5
-            self.client = genai.Client(api_key=self.api_key)
+            self.client = genai.Client(api_key=api_key)
             self.model = 'gemini-2.5-pro'
             
         except ImportError:
