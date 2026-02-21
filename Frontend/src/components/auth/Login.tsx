@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Sparkles, AlertCircle, Loader2, Eye, EyeOff } from "lucide-react";
+import { AlertCircle, Eye, EyeOff, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Link } from "react-router-dom";
@@ -68,7 +68,7 @@ const Login = ({ onLogin }: LoginProps) => {
       exit={{ opacity: 0, transition: { duration: 0.5 } }}
     >
       <motion.div
-        className="w-full max-w-lg rounded-2xl border border-slate-200 bg-white p-10 shadow-xl shadow-slate-200/50"
+        className="w-full max-w-lg rounded-2xl border border-slate-200 bg-white p-10"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, ease: "easeOut" }}
@@ -100,18 +100,42 @@ const Login = ({ onLogin }: LoginProps) => {
             disabled={isLoading}
             className="h-12 rounded-xl border-slate-200 bg-slate-50/50 text-slate-800 placeholder:text-slate-400 focus-visible:ring-2 focus-visible:ring-indigo-100 focus-visible:ring-offset-0"
           />
-          <Input
-            type="password"
-            placeholder="Password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="h-12 rounded-xl border-slate-200 bg-slate-50/50 text-slate-800 placeholder:text-slate-400 focus-visible:ring-2 focus-visible:ring-indigo-100 focus-visible:ring-offset-0"
-          />
+          <div className="relative">
+            <Input
+              type={showPassword ? "text" : "password"}
+              placeholder="Password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              disabled={isLoading}
+              className="h-12 rounded-xl border-slate-200 bg-slate-50/50 pr-10 text-slate-800 placeholder:text-slate-400 focus-visible:ring-2 focus-visible:ring-indigo-100 focus-visible:ring-offset-0"
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+              disabled={isLoading}
+            >
+              {showPassword ? (
+                <EyeOff className="h-5 w-5" />
+              ) : (
+                <Eye className="h-5 w-5" />
+              )}
+            </button>
+          </div>
           <Button
             type="submit"
-            className="h-12 w-full rounded-xl bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700"
+            disabled={isLoading}
+            className="h-12 w-full rounded-xl bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 disabled:opacity-50"
           >
-            Log In
+            {isLoading ? (
+              <span className="flex items-center gap-2">
+                <Loader2 className="h-5 w-5 animate-spin" />
+                Logging in...
+              </span>
+            ) : (
+              "Log In"
+            )}
           </Button>
         </form>
 

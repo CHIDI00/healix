@@ -6,9 +6,13 @@ import Dashboard from "./Dashboard";
 const Index = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
+  const handleLogout = () => {
+    setIsLoggedIn(false);
+  };
+
   return (
     <AnimatePresence mode="wait">
-      {!isLoggedIn ? <Login key="auth" onLogin={() => setIsLoggedIn(true)} /> : <Dashboard key="dashboard" />}
+      {!isLoggedIn ? <Login key="auth" onLogin={() => setIsLoggedIn(true)} /> : <Dashboard key="dashboard" onLogout={handleLogout} />}
     </AnimatePresence>
   );
 };
