@@ -14,6 +14,9 @@ import AIChatModal from "@/components/models/AIChatModal";
 import VitalsModal from "@/components/models/VitalsModal";
 import Orb from "@/components/ui/OrbAnimation";
 import DietitianModal from "@/components/models/DiatitionModal";
+import PhysicalHealthModal from "@/components/models/PhysicalhealthModal";
+import HealthSummaryModal from "@/components/models/HealthSummaryModal";
+import EmergencyConnectionsModal from "@/components/models/EmmergencyConnectionsModal";
 
 const quickCards = [
   {
@@ -121,14 +124,14 @@ const Dashboard = ({ onLogout }: DashboardProps) => {
               <AnimatePresence>
                 {settingsOpen && (
                   <motion.div
-                    className="absolute right-0 top-12 z-50 w-40 rounded-xl border border-slate-100 bg-white py-1 shadow-lg"
+                    className="absolute right-0 top-12 z-50 w-40 rounded-xl border border-slate-100 bg-white py-1 shadow-sm"
                     initial={{ opacity: 0, y: -10 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -10 }}
                     transition={{ duration: 0.15 }}
                   >
                     <button
-                      className="flex w-full items-center gap-2 px-4 py-2 text-left text-sm text-slate-600 transition hover:bg-slate-50 hover:text-red-600"
+                      className="flex w-full items-center shadow-none gap-2 px-4 py-2 text-left text-sm text-slate-600 transition hover:text-red-600"
                       onClick={() => {
                         setSettingsOpen(false);
                         onLogout();
@@ -238,6 +241,9 @@ const Dashboard = ({ onLogout }: DashboardProps) => {
         <AIChatModal open={chatOpen} onOpenChange={setChatOpen} />
         <VitalsModal open={vitalsOpen} onOpenChange={setVitalsOpen} />
         <DietitianModal open={dietOpen} onOpenChange={setDietOpen} />
+        <PhysicalHealthModal open={healthOpen} onOpenChange={setHealthOpen} />
+        <HealthSummaryModal open={summaryOpen} onOpenChange={setSummaryOpen} />
+        <EmergencyConnectionsModal open={emergencyOpen} onOpenChange={setEmergencyOpen} />
       </>
     </motion.div>
   );
