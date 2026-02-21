@@ -209,7 +209,7 @@ const Dashboard = ({ onLogout }: DashboardProps) => {
                 else if (card.id === "health") setHealthOpen(true);
                 else if (card.id === "diet") setDietOpen(true);
               }}
-              className="flex min-w-[120px] flex-[2] flex-col items-center gap-2 rounded-md border border-slate-100 bg-white p-4 transition hover:shadow-sm"
+              className="flex min-w-[120px] flex-[2] flex-col items-center gap-2 rounded-xl border border-slate-100 bg-white p-4 transition hover:shadow-sm"
             >
               <card.icon className={`h-5 w-5 ${card.iconColor}`} />
               <span className="md:text-lg text-base font-medium text-slate-600">
