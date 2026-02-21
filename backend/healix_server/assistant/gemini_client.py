@@ -83,7 +83,7 @@ When analyzing health data:
             from google import genai
             
             # Initialize client with API key for Gemini 2.5
-            self.client = genai.Client(api_key=api_key)
+            self.client = genai.Client(api_key=self.api_key)
             self.model = 'gemini-2.5-flash'
             
         except ImportError:
