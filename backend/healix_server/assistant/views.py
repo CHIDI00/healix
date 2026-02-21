@@ -108,12 +108,12 @@ class ChatWithAssistantView(APIView):
                 {'error': 'AI service not properly configured'},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
-        except Exception as e:
-            logger.error(f"Error in chat: {e}")
-            return Response(
-                {'error': 'Error processing message'},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
+        # except Exception as e:
+        #     logger.error(f"Error in chat: {e}")
+        #     return Response(
+        #         {'error': 'Error processing message'},
+        #         status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        #     )
 
 
 class ConversationListView(APIView):
@@ -289,8 +289,10 @@ class AvailableToolsView(APIView):
     def get(self, request):
         """Get list of available tools."""
         try:
-            assistant = GeminiHealthAssistant()
-            tools = assistant.list_available_tools()
+            tools = {
+                'send_emergency_email': 'Send emergency alert emails for critical health concerns',
+                'generate_health_records': 'Generate comprehensive health records summary for a user'
+            }
             
             return Response({
                 'count': len(tools),
@@ -315,11 +317,11 @@ def get_assistant_status(request):
     """
     try:
         assistant = GeminiHealthAssistant()
-        tools_count = len(assistant.list_available_tools())
+        available_tools = 2  # send_emergency_email and generate_health_records
         
         return Response({
             'status': 'operational',
-            'tools_available': tools_count,
+            'tools_available': available_tools,
             'message': 'Healthcare AI Assistant is ready'
         }, status=status.HTTP_200_OK)
         
