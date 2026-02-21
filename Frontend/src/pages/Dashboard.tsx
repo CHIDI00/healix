@@ -11,7 +11,7 @@ import {
   LogOut,
 } from "lucide-react";
 import AIChatModal from "@/components/models/AIChatModal";
-import Orb from "@/components/ui/OrbAnimation";
+import VitalsModal from "@/components/models/VitalsModal";
 
 const quickCards = [
   {
@@ -174,16 +174,6 @@ const Dashboard = ({ onLogout }: DashboardProps) => {
           >
             Helix
           </span>
-
-          <div className="w-full h-full absolute p-0 ">
-            <Orb
-              hoverIntensity={0.2}
-              rotateOnHover
-              hue={0}
-              forceHoverState={false}
-              backgroundColor="#000000"
-            />
-          </div>
         </motion.button>
       </div>
 
@@ -227,7 +217,10 @@ const Dashboard = ({ onLogout }: DashboardProps) => {
       </button>
 
       {/* Modals */}
-      <AIChatModal open={chatOpen} onOpenChange={setChatOpen} />
+      <>
+        <AIChatModal open={chatOpen} onOpenChange={setChatOpen} />
+        <VitalsModal open={vitalsOpen} onOpenChange={setVitalsOpen} />
+      </>
     </motion.div>
   );
 };

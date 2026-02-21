@@ -61,8 +61,7 @@ const Login = ({ onLogin }: LoginProps) => {
     <motion.div
       className="flex min-h-screen items-center justify-center"
       style={{
-        background:
-          "radial-gradient(ellipse at center, #ffffff 0%, #f1f5f9 100%)",
+        background: "radial-gradient(ellipse at center, #ffffff 0%, #f1f5f9 100%)",
       }}
       initial={{ opacity: 1 }}
       exit={{ opacity: 0, transition: { duration: 0.5 } }}
@@ -76,9 +75,7 @@ const Login = ({ onLogin }: LoginProps) => {
         <div className="mb-8 text-center">
           <div className="mb-3 flex items-center justify-center gap-2">
             <img src={logo} alt="Healix logo" className="w-6 h-auto" />
-            <h1 className="text-3xl font-semibold tracking-tight text-slate-800">
-              Helix
-            </h1>
+            <h1 className="text-3xl font-semibold tracking-tight text-slate-800">Healix</h1>
           </div>
           <p className="text-sm text-slate-400">Your unified health partner.</p>
         </div>
@@ -116,11 +113,7 @@ const Login = ({ onLogin }: LoginProps) => {
               className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
               disabled={isLoading}
             >
-              {showPassword ? (
-                <EyeOff className="h-5 w-5" />
-              ) : (
-                <Eye className="h-5 w-5" />
-              )}
+              {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
             </button>
           </div>
           <Button
@@ -139,14 +132,8 @@ const Login = ({ onLogin }: LoginProps) => {
           </Button>
         </form>
 
-        <Link
-          to="/signup"
-          className="mt-6 block text-center text-sm text-slate-400"
-        >
-          Don't have an account?{" "}
-          <span className="font-medium text-indigo-500 hover:text-indigo-600">
-            Sign Up
-          </span>
+        <Link to="/signup" className="mt-6 block text-center text-sm text-slate-400">
+          Don't have an account? <span className="font-medium text-indigo-500 hover:text-indigo-600">Sign Up</span>
         </Link>
       </motion.div>
     </motion.div>
