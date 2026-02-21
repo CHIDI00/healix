@@ -1,14 +1,50 @@
 import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Brain, FileText, Heart, Phone, Settings, Sparkles, Utensils, LogOut } from "lucide-react";
+import {
+  Brain,
+  FileText,
+  Heart,
+  Phone,
+  Settings,
+  Sparkles,
+  Utensils,
+  LogOut,
+} from "lucide-react";
 import AIChatModal from "@/components/models/AIChatModal";
+import Orb from "@/components/ui/OrbAnimation";
 
 const quickCards = [
-  { id: "vitals", label: "Vitals", icon: Heart, preview: "72 BPM", iconColor: "text-rose-500" },
-  { id: "diet", label: "Dietitian Protocol", icon: Utensils, iconColor: "text-amber-500" },
-  { id: "health", label: "Physical & Mental Health", icon: Brain, iconColor: "text-violet-500" },
-  { id: "summary", label: "Health Summary", icon: FileText, iconColor: "text-sky-500" },
-  { id: "emergency", label: "Emergency Connections", icon: Phone, iconColor: "text-red-500" },
+  {
+    id: "vitals",
+    label: "Vitals",
+    icon: Heart,
+    preview: "72 BPM",
+    iconColor: "text-rose-500",
+  },
+  {
+    id: "diet",
+    label: "Dietitian Protocol",
+    icon: Utensils,
+    iconColor: "text-amber-500",
+  },
+  {
+    id: "health",
+    label: "Physical & Mental Health",
+    icon: Brain,
+    iconColor: "text-violet-500",
+  },
+  {
+    id: "summary",
+    label: "Health Summary",
+    icon: FileText,
+    iconColor: "text-sky-500",
+  },
+  {
+    id: "emergency",
+    label: "Emergency Connections",
+    icon: Phone,
+    iconColor: "text-red-500",
+  },
 ];
 
 interface DashboardProps {
@@ -27,7 +63,7 @@ const Dashboard = ({ onLogout }: DashboardProps) => {
 
   return (
     <motion.div
-      className="relative flex min-h-screen flex-col max-w-[185rem] mx-auto"
+      className="relative flex min-h-screen flex-col max-w-[90rem] mx-auto"
       style={{ backgroundColor: spikeActive ? "#fff1f2" : "#FAFAFA" }}
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
@@ -51,8 +87,12 @@ const Dashboard = ({ onLogout }: DashboardProps) => {
       {/* Header */}
       <header className="flex items-center justify-between px-6 py-5">
         <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-indigo-100 text-sm font-semibold text-indigo-600">OJ</div>
-          <span className="text-sm font-medium text-slate-700">Onyeka Joshua</span>
+          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-indigo-100 text-sm font-semibold text-indigo-600">
+            OJ
+          </div>
+          <span className="text-sm font-medium text-slate-700">
+            Onyeka Joshua
+          </span>
         </div>
 
         <div className="flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-1.5 shadow-sm">
@@ -60,7 +100,9 @@ const Dashboard = ({ onLogout }: DashboardProps) => {
             <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
             <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
           </span>
-          <span className="text-xs font-medium text-slate-600">Oraimo Watch Synced</span>
+          <span className="text-xs font-medium text-slate-600">
+            Oraimo Watch Synced
+          </span>
         </div>
 
         <div className="relative">
@@ -97,21 +139,51 @@ const Dashboard = ({ onLogout }: DashboardProps) => {
       </header>
 
       {/* AI Hero Button */}
-      <div className="flex flex-1 items-center justify-center">
+      <div className=" flex flex-1 items-center justify-center">
         <motion.button
           onClick={() => setChatOpen(true)}
-          className="group flex h-48 w-48 flex-col items-center justify-center rounded-full border border-indigo-100 bg-white"
+          className="relative group flex h-48 w-48 flex-col items-center justify-center rounded-full border border-indigo-100 bg-white"
           style={{
-            boxShadow: spikeActive ? "0 0 60px rgba(239,68,68,0.4)" : "0 0 60px rgba(99,102,241,0.2)",
+            boxShadow: spikeActive
+              ? "0 0 60px rgba(239,68,68,0.4)"
+              : "0 0 60px rgba(99,102,241,0.2)",
           }}
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.97 }}
-          animate={spikeActive ? { boxShadow: ["0 0 40px rgba(239,68,68,0.3)", "0 0 80px rgba(239,68,68,0.6)", "0 0 40px rgba(239,68,68,0.3)"] } : {}}
+          animate={
+            spikeActive
+              ? {
+                  boxShadow: [
+                    "0 0 40px rgba(239,68,68,0.3)",
+                    "0 0 80px rgba(239,68,68,0.6)",
+                    "0 0 40px rgba(239,68,68,0.3)",
+                  ],
+                }
+              : {}
+          }
           transition={spikeActive ? { repeat: Infinity, duration: 1.5 } : {}}
         >
-          <Sparkles className={`mb-2 h-10 w-10 transition ${spikeActive ? "text-red-500" : "text-indigo-500"}`} />
-          <span className="text-xs font-medium text-slate-500">Tap to talk to</span>
-          <span className={`text-sm font-semibold ${spikeActive ? "text-red-600" : "text-indigo-600"}`}>Helix</span>
+          <Sparkles
+            className={`mb-2 h-10 w-10 transition ${spikeActive ? "text-red-500" : "text-indigo-500"}`}
+          />
+          <span className="text-xs font-medium text-slate-500">
+            Tap to talk to
+          </span>
+          <span
+            className={`text-sm font-semibold ${spikeActive ? "text-red-600" : "text-indigo-600"}`}
+          >
+            Helix
+          </span>
+
+          <div className="w-full h-full absolute p-0">
+            <Orb
+              hoverIntensity={0.2}
+              rotateOnHover
+              hue={0}
+              forceHoverState={false}
+              backgroundColor="#000000"
+            />
+          </div>
         </motion.button>
       </div>
 
@@ -133,8 +205,14 @@ const Dashboard = ({ onLogout }: DashboardProps) => {
               className="flex min-w-[120px] flex-[2] flex-col items-center gap-2 rounded-2xl border border-slate-100 bg-white p-4 shadow-sm transition hover:shadow-md"
             >
               <card.icon className={`h-5 w-5 ${card.iconColor}`} />
-              <span className="md:text-lg text-base font-medium text-slate-600">{card.label}</span>
-              {card.preview && <span className="text-xs font-semibold text-emerald-600">{card.preview}</span>}
+              <span className="md:text-lg text-base font-medium text-slate-600">
+                {card.label}
+              </span>
+              {card.preview && (
+                <span className="text-xs font-semibold text-emerald-600">
+                  {card.preview}
+                </span>
+              )}
             </motion.button>
           ))}
         </div>
