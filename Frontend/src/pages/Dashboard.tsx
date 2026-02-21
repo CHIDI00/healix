@@ -121,14 +121,14 @@ const Dashboard = ({ onLogout }: DashboardProps) => {
               <AnimatePresence>
                 {settingsOpen && (
                   <motion.div
-                    className="absolute right-0 top-12 z-50 w-40 rounded-xl border border-slate-100 bg-white py-1 shadow-lg"
+                    className="absolute right-0 top-12 z-50 w-40 rounded-xl border border-slate-100 bg-white py-1 shadow-sm"
                     initial={{ opacity: 0, y: -10 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -10 }}
                     transition={{ duration: 0.15 }}
                   >
                     <button
-                      className="flex w-full items-center gap-2 px-4 py-2 text-left text-sm text-slate-600 transition hover:bg-slate-50 hover:text-red-600"
+                      className="flex w-full items-center shadow-none gap-2 px-4 py-2 text-left text-sm text-slate-600 transition hover:text-red-600"
                       onClick={() => {
                         setSettingsOpen(false);
                         onLogout();
