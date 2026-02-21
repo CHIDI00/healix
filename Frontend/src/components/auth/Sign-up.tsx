@@ -3,7 +3,8 @@ import { motion } from "framer-motion";
 import { Sparkles, AlertCircle, Loader2, Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import logo from "../../asset/healixlogo.png";
 
 interface FormData {
   first_name: string;
