@@ -76,11 +76,17 @@ When analyzing health data:
             raise ValueError("GEMINI_API_KEY not provided and not found in environment variables")
         
         try:
-            import google.generativeai as genai
-            genai.configure(api_key=self.api_key)
-            self.client = genai.GenerativeModel('gemini-1.5-pro')
+            from google import genai
+            
+            # Initialize client with API key for Gemini 2.5
+            self.client = genai.Client(api_key=self.api_key)
+            self.model = 'gemini-2.5-pro'
+            
         except ImportError:
-            raise ImportError("google-generativeai package not installed. Install with: pip install google-generativeai")
+            raise ImportError("google-genai package not installed. Install with: pip install google-genai")
+        except Exception as e:
+            logger.error(f"Failed to initialize Gemini client: {e}")
+            raise
         
         # Initialize tool registry with built-in tools
         self.tool_registry = ToolRegistry()
@@ -153,11 +159,55 @@ When analyzing health data:
         return self.register_custom_tool(FunctionTool())
 
     def _get_tools_for_api(self) -> List[Dict[str, Any]]:
-        """Get tool definitions in Gemini API format."""
-        return [{
-            "type": "function",
-            "function": tool_def
-        } for tool_def in self.tool_registry.get_tool_definitions()]
+        """Get tool definitions in Gemini 2.5 API format."""
+        tools = []
+        for tool_def in self.tool_registry.get_tool_definitions():
+            tool_spec = {
+                "name": tool_def.get("name", "").replace(" ", "_").lower(),
+                "description": tool_def.get("description", ""),
+            }
+            
+            # Build parameters schema for Gemini 2.5
+            if "parameters" in tool_def and tool_def["parameters"]:
+                properties = {}
+                required = []
+                
+                for param in tool_def["parameters"]:
+                    print(param)
+                    
+                    # param_name = param.get("name", "")
+                    # param_type = param.get("type", "string")
+                    # description = param.get("description", "")
+                    # param_required = param.get("required", False)
+                    
+                    # Map Python types to JSON schema types
+                    # type_mapping = {
+                    #     "string": "string",
+                    #     "integer": "integer",
+                    #     "float": "number",
+                    #     "number": "number",
+                    #     "boolean": "boolean",
+                    # }
+                    
+                    # json_type = type_mapping.get(param_type, "string")
+                    
+                    # properties[param_name] = {
+                    #     "type": json_type,
+                    #     "description": description,
+                    # }
+                    
+                    # if param_required:
+                    #     required.append(param_name)
+                
+                tool_spec["input_schema"] = {
+                    "type": "object",
+                    "properties": properties,
+                    "required": required,
+                }
+            
+            tools.append(tool_spec)
+        
+        return tools
 
     def _process_tool_call(self, tool_name: str, tool_input: Dict[str, Any]) -> str:
         """
@@ -205,47 +255,52 @@ When analyzing health data:
         })
         
         try:
-            # Prepare messages for API
-            messages = [
-                {"role": "user", "content": self.HEALTHCARE_SYSTEM_PROMPT}
-            ]
+            # Prepare messages for Gemini 2.5 API
+            messages = []
             
             # Add conversation history
-            for msg in self.conversation_history[:-1]:  # Exclude the current message
-                messages.append(msg)
+            for msg in self.conversation_history:
+                # Convert role: "assistant" -> "model" for google-genai
+                role = "user" if msg["role"] == "user" else "model"
+                messages.append({
+                    "role": role,
+                    "parts": [msg["content"]]
+                })
             
-            # Add current message with context
-            messages.append({
-                "role": "user",
-                "content": full_message
-            })
+            # Update the last user message to include context
+            if messages and messages[-1]["role"] == "user":
+                messages[-1]["parts"] = [full_message]
             
-            # Get response from Gemini
-            response = self.client.generate_content(
-                messages,
-                tools=self._get_tools_for_api() if self.tool_registry.get_all_tools() else None,
-                tool_config={"function_calling_config": "AUTO"} if self.tool_registry.get_all_tools() else None
+            # Get available tools
+            tools = self._get_tools_for_api() if self.tool_registry.get_all_tools() else None
+            
+            # Generate response using Gemini 2.5 API
+            response = self.client.models.generate_content(
+                model=self.model,
+                contents=messages,
+                system_instruction=self.HEALTHCARE_SYSTEM_PROMPT,
+                tools=tools if tools else None,
             )
             
             # Process response
             assistant_message = ""
             
-            if response.parts:
-                for part in response.parts:
-                    if hasattr(part, 'text'):
+            if response.content and response.content.parts:
+                for part in response.content.parts:
+                    if hasattr(part, 'text') and part.text:
                         assistant_message += part.text
                     elif hasattr(part, 'function_call'):
-                        # Handle function call
+                        # Handle function call from Gemini 2.5
                         func_call = part.function_call
                         tool_result = self._process_tool_call(
                             func_call.name,
-                            dict(func_call.args)
+                            dict(func_call.args) if func_call.args else {}
                         )
                         assistant_message += f"\n[Tool: {func_call.name}]\n{tool_result}\n"
             
             # Add to conversation history
             self.conversation_history.append({
-                "role": "assistant",
+                "role": "model",
                 "content": assistant_message
             })
             
