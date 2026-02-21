@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { AlertCircle, Eye, EyeOff } from "lucide-react";
+import { AlertCircle, Eye, EyeOff, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Link, useNavigate } from "react-router-dom";
@@ -67,7 +67,9 @@ const Signup = () => {
 
       if (!response.ok) {
         const firstErrorKey = Object.keys(data)[0];
-        const errorMessage = Array.isArray(data[firstErrorKey]) ? data[firstErrorKey][0] : "Registration failed. Please check your details.";
+        const errorMessage = Array.isArray(data[firstErrorKey])
+          ? data[firstErrorKey][0]
+          : "Registration failed. Please check your details.";
 
         throw new Error(`${firstErrorKey}: ${errorMessage}`);
       }
@@ -85,13 +87,14 @@ const Signup = () => {
     <motion.div
       className="flex min-h-screen items-center justify-center py-10"
       style={{
-        background: "radial-gradient(ellipse at center, #ffffff 0%, #f1f5f9 100%)",
+        background:
+          "radial-gradient(ellipse at center, #ffffff 0%, #f1f5f9 100%)",
       }}
       initial={{ opacity: 1 }}
       exit={{ opacity: 0, transition: { duration: 0.5 } }}
     >
       <motion.div
-        className="w-full max-w-xl rounded-2xl border border-slate-200 bg-white p-10 shadow-xl shadow-slate-200/50"
+        className="w-full max-w-xl rounded-2xl border border-slate-200 bg-white p-10"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, ease: "easeOut" }}
@@ -99,9 +102,13 @@ const Signup = () => {
         <div className="mb-8 text-center">
           <div className="mb-3 flex items-center justify-center gap-2">
             <img src={logo} alt="Healix logo" className="w-6 h-auto" />
-            <h1 className="text-3xl font-semibold tracking-tight text-slate-800">Helix</h1>
+            <h1 className="text-3xl font-semibold tracking-tight text-slate-800">
+              Helix
+            </h1>
           </div>
-          <p className="text-sm text-slate-400">Join your unified health partner.</p>
+          <p className="text-sm text-slate-400">
+            Join your unified health partner.
+          </p>
         </div>
 
         {error && (
@@ -172,7 +179,11 @@ const Signup = () => {
               className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
               disabled={isLoading}
             >
-              {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+              {showPassword ? (
+                <EyeOff className="h-5 w-5" />
+              ) : (
+                <Eye className="h-5 w-5" />
+              )}
             </button>
           </div>
 
@@ -193,17 +204,38 @@ const Signup = () => {
               className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
               disabled={isLoading}
             >
-              {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+              {showConfirmPassword ? (
+                <EyeOff className="h-5 w-5" />
+              ) : (
+                <Eye className="h-5 w-5" />
+              )}
             </button>
           </div>
 
-          <Button type="submit" className="mt-2 h-12 w-full rounded-xl bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700">
-            Create Account
+          <Button
+            type="submit"
+            disabled={isLoading}
+            className="mt-2 h-12 w-full rounded-xl bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 disabled:opacity-50"
+          >
+            {isLoading ? (
+              <span className="flex items-center gap-2">
+                <Loader2 className="h-5 w-5 animate-spin" />
+                Creating Account...
+              </span>
+            ) : (
+              "Create Account"
+            )}
           </Button>
         </form>
 
-        <Link to="/login" className="mt-6 block text-center text-sm text-slate-400">
-          Already have an account? <span className="font-medium text-indigo-500 hover:text-indigo-600">Log In</span>
+        <Link
+          to="/login"
+          className="mt-6 block text-center text-sm text-slate-400"
+        >
+          Already have an account?{" "}
+          <span className="font-medium text-indigo-500 hover:text-indigo-600">
+            Log In
+          </span>
         </Link>
       </motion.div>
     </motion.div>
