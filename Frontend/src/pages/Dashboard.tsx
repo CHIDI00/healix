@@ -142,7 +142,7 @@ const Dashboard = ({ onLogout }: DashboardProps) => {
       <div className=" flex flex-1 items-center justify-center">
         <motion.button
           onClick={() => setChatOpen(true)}
-          className="relative group flex h-48 w-48 flex-col items-center justify-center rounded-full border border-indigo-100 bg-white"
+          className="relative group flex h-56 w-56 p-0 flex-col items-center justify-center rounded-full border border-indigo-100 bg-white"
           style={{
             boxShadow: spikeActive
               ? "0 0 60px rgba(239,68,68,0.4)"
@@ -175,7 +175,7 @@ const Dashboard = ({ onLogout }: DashboardProps) => {
             Helix
           </span>
 
-          <div className="w-full h-full absolute p-0">
+          <div className="w-full h-full absolute p-0 ">
             <Orb
               hoverIntensity={0.2}
               rotateOnHover
