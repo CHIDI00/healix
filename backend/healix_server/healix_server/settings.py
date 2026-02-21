@@ -135,3 +135,24 @@ CORS_ALLOW_ALL_ORIGINS = True  # TODO: change after deployment
 
 # Token settings
 TOKEN_EXPIRED_AFTER_SECONDS = 86400  # 24 hours
+
+# REST Framework configuration
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'healix_server.auth.BearerTokenAuthentication',  # Custom Bearer token auth
+        'rest_framework.authentication.TokenAuthentication',  # Fallback to DRF Token
+        'rest_framework.authentication.SessionAuthentication',  # Browser sessions
+    ],
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticatedOrReadOnly',
+    ],
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE': 10,
+    'DEFAULT_FILTER_BACKENDS': [
+        'rest_framework.filters.SearchFilter',
+        'rest_framework.filters.OrderingFilter',
+    ],
+}
+
+# Default auto field
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
