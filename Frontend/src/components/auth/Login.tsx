@@ -4,6 +4,7 @@ import { Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Link } from "react-router-dom";
+import logo from "../../asset/healixlogo.png";
 
 interface LoginProps {
   onLogin: () => void;
@@ -22,7 +23,8 @@ const Login = ({ onLogin }: LoginProps) => {
     <motion.div
       className="flex min-h-screen items-center justify-center"
       style={{
-        background: "radial-gradient(ellipse at center, #ffffff 0%, #f1f5f9 100%)",
+        background:
+          "radial-gradient(ellipse at center, #ffffff 0%, #f1f5f9 100%)",
       }}
       initial={{ opacity: 1 }}
       exit={{ opacity: 0, transition: { duration: 0.5 } }}
@@ -35,8 +37,10 @@ const Login = ({ onLogin }: LoginProps) => {
       >
         <div className="mb-8 text-center">
           <div className="mb-3 flex items-center justify-center gap-2">
-            <Sparkles className="h-7 w-7 text-indigo-500" />
-            <h1 className="text-3xl font-semibold tracking-tight text-slate-800">Helix</h1>
+            <img src={logo} alt="Healix logo" className="w-6 h-auto" />
+            <h1 className="text-3xl font-semibold tracking-tight text-slate-800">
+              Helix
+            </h1>
           </div>
           <p className="text-sm text-slate-400">Your unified health partner.</p>
         </div>
@@ -56,13 +60,22 @@ const Login = ({ onLogin }: LoginProps) => {
             onChange={(e) => setPassword(e.target.value)}
             className="h-12 rounded-xl border-slate-200 bg-slate-50/50 text-slate-800 placeholder:text-slate-400 focus-visible:ring-2 focus-visible:ring-indigo-100 focus-visible:ring-offset-0"
           />
-          <Button type="submit" className="h-12 w-full rounded-xl bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700">
+          <Button
+            type="submit"
+            className="h-12 w-full rounded-xl bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700"
+          >
             Log In
           </Button>
         </form>
 
-        <Link to="/signup" className="mt-6 block text-center text-sm text-slate-400">
-          Don't have an account? <span className="font-medium text-indigo-500 hover:text-indigo-600">Sign Up</span>
+        <Link
+          to="/signup"
+          className="mt-6 block text-center text-sm text-slate-400"
+        >
+          Don't have an account?{" "}
+          <span className="font-medium text-indigo-500 hover:text-indigo-600">
+            Sign Up
+          </span>
         </Link>
       </motion.div>
     </motion.div>
