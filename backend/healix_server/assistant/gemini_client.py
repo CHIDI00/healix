@@ -9,9 +9,8 @@ from __future__ import annotations
 import json
 import logging
 from typing import List, Dict, Any, Optional, TYPE_CHECKING
-from .tools import ToolRegistry, BaseTool, ToolParameter
+from .tools import send_emergency_email, generate_health_records
 from .rag import HealthDataRAG
-from .built_in_tools import register_built_in_tools
 
 if TYPE_CHECKING:
     from django.contrib.auth.models import User
@@ -76,106 +75,46 @@ When analyzing health data:
             raise ValueError("GEMINI_API_KEY not provided and not found in environment variables")
         
         try:
-            import google.generativeai as genai
-            genai.configure(api_key=self.api_key)
-            self.client = genai.GenerativeModel('gemini-1.5-pro')
+            from google import genai
+            
+            # Initialize client with API key for Gemini 2.5
+            self.client = genai.Client(api_key=self.api_key)
+            self.model = 'gemini-2.5-pro'
+            
         except ImportError:
-            raise ImportError("google-generativeai package not installed. Install with: pip install google-generativeai")
-        
-        # Initialize tool registry with built-in tools
-        self.tool_registry = ToolRegistry()
-        register_built_in_tools(self.tool_registry)
+            raise ImportError("google-genai package not installed. Install with: pip install google-genai")
+        except Exception as e:
+            logger.error(f"Failed to initialize Gemini client: {e}")
+            raise
         
         # Conversation history for context
         self.conversation_history: List[Dict[str, str]] = []
 
-    def register_custom_tool(self, tool: BaseTool) -> None:
+    def send_emergency_alert(self, recipient_email: str, user_name: str, health_concern: str) -> str:
         """
-        Register a custom tool for use by the assistant.
+        Send an emergency health alert email.
         
         Args:
-            tool: Tool instance inheriting from BaseTool
-            
-        Example:
-            class HeartRateZonesTool(BaseTool):
-                name = "calculate_heart_rate_zones"
-                description = "Calculate heart rate training zones"
-                parameters = [
-                    ToolParameter("max_heart_rate", "integer", "Maximum heart rate", required=True)
-                ]
-                
-                def execute(self, max_heart_rate: int) -> str:
-                    # Implementation
-                    return "Zones calculated..."
-            
-            assistant.register_custom_tool(HeartRateZonesTool())
-        """
-        self.tool_registry.register(tool)
-
-    def register_custom_tool_func(self, name: str, description: str, 
-                                   parameters: List[ToolParameter], 
-                                   func: callable) -> BaseTool:
-        """
-        Register a custom tool from a function.
-        
-        Args:
-            name: Tool name
-            description: Tool description
-            parameters: List of ToolParameter objects
-            func: Callable function that executes the tool
+            recipient_email: Email address to send alert to
+            user_name: Name of the user
+            health_concern: Description of the health concern
             
         Returns:
-            BaseTool: The registered tool instance
-            
-        Example:
-            def calculate_bmi(weight: float, height: float) -> str:
-                bmi = weight / (height ** 2)
-                return f"BMI: {bmi:.1f}"
-            
-            assistant.register_custom_tool_func(
-                name="calculate_bmi",
-                description="Calculate Body Mass Index",
-                parameters=[
-                    ToolParameter("weight", "number", "Weight in kg"),
-                    ToolParameter("height", "number", "Height in cm")
-                ],
-                func=calculate_bmi
-            )
+            str: Status message
         """
-        class FunctionTool(BaseTool):
-            pass
-        
-        FunctionTool.name = name
-        FunctionTool.description = description
-        FunctionTool.parameters = parameters
-        FunctionTool.execute = lambda self, **kwargs: func(**kwargs)
-        
-        return self.register_custom_tool(FunctionTool())
+        return send_emergency_email(recipient_email, user_name, health_concern)
 
-    def _get_tools_for_api(self) -> List[Dict[str, Any]]:
-        """Get tool definitions in Gemini API format."""
-        return [{
-            "type": "function",
-            "function": tool_def
-        } for tool_def in self.tool_registry.get_tool_definitions()]
-
-    def _process_tool_call(self, tool_name: str, tool_input: Dict[str, Any]) -> str:
+    def generate_records(self, user_id: int) -> str:
         """
-        Process a tool call from the model.
+        Generate comprehensive health records for a user.
         
         Args:
-            tool_name: Name of the tool to execute
-            tool_input: Tool parameters
+            user_id: Django user ID
             
         Returns:
-            str: Tool execution result
+            str: Formatted health records
         """
-        try:
-            result = self.tool_registry.execute(tool_name, **tool_input)
-            return result
-        except Exception as e:
-            logger.error(f"Error executing tool {tool_name}: {e}")
-            return f"Error executing tool: {str(e)}"
+        return generate_health_records(user_id)
 
     def chat(self, user: User, query: str, use_rag: bool = True) -> str:
         """
@@ -205,47 +144,50 @@ When analyzing health data:
         })
         
         try:
-            # Prepare messages for API
-            messages = [
-                {"role": "user", "content": self.HEALTHCARE_SYSTEM_PROMPT}
-            ]
+            # Prepare messages for Gemini 2.5 API
+            messages = []
+            
+            # Add system instruction as first message if starting new conversation
+            if len(self.conversation_history) == 1:
+                messages.append({
+                    "role": "user",
+                    "parts": [self.HEALTHCARE_SYSTEM_PROMPT]
+                })
+                messages.append({
+                    "role": "model",
+                    "parts": ["I understand. I'll act as an expert healthcare professional and provide evidence-based guidance based on your health data."]
+                })
             
             # Add conversation history
-            for msg in self.conversation_history[:-1]:  # Exclude the current message
-                messages.append(msg)
+            for msg in self.conversation_history:
+                # Convert role: "assistant" -> "model" for google-genai
+                role = "user" if msg["role"] == "user" else "model"
+                messages.append({
+                    "role": role,
+                    "parts": [msg["content"]]
+                })
             
-            # Add current message with context
-            messages.append({
-                "role": "user",
-                "content": full_message
-            })
+            # Update the last user message to include context
+            if messages and messages[-1]["role"] == "user":
+                messages[-1]["parts"] = [full_message]
             
-            # Get response from Gemini
-            response = self.client.generate_content(
-                messages,
-                tools=self._get_tools_for_api() if self.tool_registry.get_all_tools() else None,
-                tool_config={"function_calling_config": "AUTO"} if self.tool_registry.get_all_tools() else None
+            # Generate response using Gemini 2.5 API
+            response = self.client.models.generate_content(
+                model=self.model,
+                contents=messages,
             )
             
             # Process response
             assistant_message = ""
             
-            if response.parts:
-                for part in response.parts:
-                    if hasattr(part, 'text'):
+            if response.content and response.content.parts:
+                for part in response.content.parts:
+                    if hasattr(part, 'text') and part.text:
                         assistant_message += part.text
-                    elif hasattr(part, 'function_call'):
-                        # Handle function call
-                        func_call = part.function_call
-                        tool_result = self._process_tool_call(
-                            func_call.name,
-                            dict(func_call.args)
-                        )
-                        assistant_message += f"\n[Tool: {func_call.name}]\n{tool_result}\n"
             
             # Add to conversation history
             self.conversation_history.append({
-                "role": "assistant",
+                "role": "model",
                 "content": assistant_message
             })
             
@@ -284,12 +226,3 @@ When analyzing health data:
         """
         recommendation_query = "Based on my health data and current lifestyle, what are your top 5 wellness recommendations I should prioritize?"
         return self.chat(user, recommendation_query, use_rag=True)
-
-    def list_available_tools(self) -> Dict[str, str]:
-        """
-        Get list of available tools and their descriptions.
-        
-        Returns:
-            Dict[str, str]: Mapping of tool names to descriptions
-        """
-        return self.tool_registry.list_tools()

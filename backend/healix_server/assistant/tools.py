@@ -1,186 +1,141 @@
 """
-Tool Registry and Base Tool Classes for Healthcare Assistant.
+Simple tool functions for healthcare assistant.
 
-Allows easy registration and management of custom tools for the AI assistant.
+Provides email and health record generation capabilities.
 """
 
-from abc import ABC, abstractmethod
-from typing import Any, Callable, Dict, List, Optional
-from dataclasses import dataclass, asdict
+import logging
+from django.core.mail import send_mail
+from django.conf import settings
+from healix_server.models import VitalSigns, PhysicalData, FitnessData, Nutrition, Sleep, ReproductiveHealth
+
+logger = logging.getLogger(__name__)
 
 
-@dataclass
-class ToolParameter:
-    """Represents a parameter for a tool function."""
-    name: str
-    type: str
-    description: str
-    required: bool = True
-    enum: Optional[List[str]] = None
-
-    def to_dict(self) -> Dict[str, Any]:
-        """Convert to dictionary."""
-        data = asdict(self)
-        if self.enum is None:
-            del data['enum']
-        return data
-
-
-class BaseTool(ABC):
+def send_emergency_email(recipient_email: str, user_name: str, health_concern: str) -> str:
     """
-    Base class for all healthcare assistant tools.
+    Send an emergency alert email.
     
-    Inherit from this class to create custom tools that can be used by the AI assistant.
+    Args:
+        recipient_email: Email address to send to
+        user_name: Name of the user
+        health_concern: Description of the health concern
+        
+    Returns:
+        str: Status message
     """
+    try:
+        subject = f"Emergency Health Alert - {user_name}"
+        message = f"""
+EMERGENCY HEALTH ALERT
+
+User: {user_name}
+Contact Email: {recipient_email}
+
+Health Concern:
+{health_concern}
+
+This is an automated alert from the Healix Healthcare System.
+Please take appropriate action immediately.
+
+If this is a medical emergency, please call 911 or your local emergency services.
+"""
+        
+        send_mail(
+            subject=subject,
+            message=message,
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[recipient_email],
+            fail_silently=False,
+        )
+        
+        logger.info(f"Emergency email sent to {recipient_email} for user {user_name}")
+        return f"Emergency email sent successfully to {recipient_email}"
+        
+    except Exception as e:
+        logger.error(f"Failed to send emergency email: {e}")
+        return f"Error sending emergency email: {str(e)}"
+
+
+def generate_health_records(user_id: int) -> str:
+    """
+    Generate comprehensive health records for a user.
     
-    name: str
-    description: str
-    parameters: List[ToolParameter] = []
-
-    @abstractmethod
-    def execute(self, **kwargs) -> str:
-        """
-        Execute the tool with given parameters.
+    Args:
+        user_id: Django user ID
         
-        Args:
-            **kwargs: Tool-specific parameters
-            
-        Returns:
-            str: Result of tool execution
-        """
-        pass
-
-    def to_tool_dict(self) -> Dict[str, Any]:
-        """Convert tool to Gemini function schema."""
-        return {
-            "name": self.name,
-            "description": self.description,
-            "parameters": {
-                "type": "object",
-                "properties": {
-                    param.name: {
-                        "type": param.type,
-                        "description": param.description,
-                        **({"enum": param.enum} if param.enum else {})
-                    }
-                    for param in self.parameters
-                },
-                "required": [param.name for param in self.parameters if param.required]
-            }
-        }
-
-
-class ToolRegistry:
+    Returns:
+        str: Formatted health records summary
     """
-    Registry for managing healthcare assistant tools.
-    
-    Usage:
-        # Create registry
-        registry = ToolRegistry()
+    try:
+        records = []
         
-        # Register a custom tool
-        @registry.register_tool
-        class MyCustomTool(BaseTool):
-            name = "my_custom_tool"
-            description = "Description of my tool"
-            parameters = [
-                ToolParameter("param1", "string", "Description", required=True)
-            ]
-            
-            def execute(self, param1: str) -> str:
-                # Implementation
-                return "result"
+        # Vital Signs
+        vitals = VitalSigns.objects.filter(user_id=user_id).order_by('-timestamp').first()
+        if vitals:
+            records.append(f"VITAL SIGNS (Latest)\n" +
+                          f"  Heart Rate: {vitals.heart_rate} bpm\n" +
+                          f"  Blood Pressure: {vitals.systolic}/{vitals.diastolic} mmHg\n" +
+                          f"  Temperature: {vitals.temperature}°C\n" +
+                          f"  Oxygen Saturation: {vitals.oxygen_saturation}%\n" +
+                          f"  Recorded: {vitals.timestamp}\n")
         
-        # Or register directly
-        registry.register(MyCustomTool())
-    """
-
-    def __init__(self):
-        """Initialize the tool registry."""
-        self._tools: Dict[str, BaseTool] = {}
-
-    def register(self, tool: BaseTool) -> BaseTool:
-        """
-        Register a tool instance.
+        # Physical Data
+        physical = PhysicalData.objects.filter(user_id=user_id).order_by('-timestamp').first()
+        if physical:
+            records.append(f"PHYSICAL DATA (Latest)\n" +
+                          f"  Height: {physical.height} cm\n" +
+                          f"  Weight: {physical.weight} kg\n" +
+                          f"  BMI: {physical.bmi:.1f}\n" +
+                          f"  Body Fat: {physical.body_fat_percentage}%\n" +
+                          f"  Recorded: {physical.timestamp}\n")
         
-        Args:
-            tool: Tool instance to register
-            
-        Returns:
-            BaseTool: The registered tool
-            
-        Raises:
-            ValueError: If tool with same name already exists
-        """
-        if tool.name in self._tools:
-            raise ValueError(f"Tool '{tool.name}' is already registered")
+        # Fitness Data
+        fitness = FitnessData.objects.filter(user_id=user_id).order_by('-timestamp').first()
+        if fitness:
+            records.append(f"FITNESS DATA (Latest)\n" +
+                          f"  Steps: {fitness.steps}\n" +
+                          f"  Active Minutes: {fitness.active_minutes}\n" +
+                          f"  Calories Burned: {fitness.calories_burned}\n" +
+                          f"  Recorded: {fitness.timestamp}\n")
         
-        self._tools[tool.name] = tool
-        return tool
-
-    def register_tool(self, tool_class: type) -> type:
-        """
-        Decorator to register a tool class.
+        # Nutrition Data
+        nutrition = Nutrition.objects.filter(user_id=user_id).order_by('-timestamp').first()
+        if nutrition:
+            records.append(f"NUTRITION DATA (Latest)\n" +
+                          f"  Calories: {nutrition.calories}\n" +
+                          f"  Protein: {nutrition.protein}g\n" +
+                          f"  Carbs: {nutrition.carbs}g\n" +
+                          f"  Fat: {nutrition.fat}g\n" +
+                          f"  Recorded: {nutrition.timestamp}\n")
         
-        Args:
-            tool_class: Tool class inheriting from BaseTool
-            
-        Returns:
-            type: The tool class
-        """
-        instance = tool_class()
-        self.register(instance)
-        return tool_class
-
-    def unregister(self, tool_name: str) -> None:
-        """
-        Unregister a tool.
+        # Sleep Data
+        sleep = Sleep.objects.filter(user_id=user_id).order_by('-timestamp').first()
+        if sleep:
+            records.append(f"SLEEP DATA (Latest)\n" +
+                          f"  Duration: {sleep.duration_hours} hours\n" +
+                          f"  Quality: {sleep.quality_score}/100\n" +
+                          f"  Deep Sleep: {sleep.deep_sleep_minutes} min\n" +
+                          f"  REM Sleep: {sleep.rem_sleep_minutes} min\n" +
+                          f"  Recorded: {sleep.timestamp}\n")
         
-        Args:
-            tool_name: Name of the tool to unregister
-            
-        Raises:
-            KeyError: If tool not found
-        """
-        del self._tools[tool_name]
-
-    def get(self, tool_name: str) -> Optional[BaseTool]:
-        """
-        Get a tool by name.
+        # Reproductive Health
+        repro = ReproductiveHealth.objects.filter(user_id=user_id).order_by('-timestamp').first()
+        if repro:
+            records.append(f"REPRODUCTIVE HEALTH (Latest)\n" +
+                          f"  Menstrual Cycle: {repro.menstrual_cycle_day}\n" +
+                          f"  Symptoms: {repro.symptoms}\n" +
+                          f"  Recorded: {repro.timestamp}\n")
         
-        Args:
-            tool_name: Name of the tool
-            
-        Returns:
-            BaseTool or None: The tool if found
-        """
-        return self._tools.get(tool_name)
-
-    def execute(self, tool_name: str, **kwargs) -> str:
-        """
-        Execute a tool by name.
+        if not records:
+            return "No health records found for this user."
         
-        Args:
-            tool_name: Name of the tool to execute
-            **kwargs: Tool parameters
-            
-        Returns:
-            str: Tool execution result
-            
-        Raises:
-            KeyError: If tool not found
-        """
-        tool = self._tools[tool_name]
-        return tool.execute(**kwargs)
-
-    def get_all_tools(self) -> List[BaseTool]:
-        """Get all registered tools."""
-        return list(self._tools.values())
-
-    def get_tool_definitions(self) -> List[Dict[str, Any]]:
-        """Get tool definitions in Gemini function schema format."""
-        return [tool.to_tool_dict() for tool in self._tools.values()]
-
-    def list_tools(self) -> Dict[str, str]:
-        """Get a mapping of tool names to descriptions."""
-        return {name: tool.description for name, tool in self._tools.items()}
+        health_summary = "HEALTH RECORDS REPORT\n" + "="*50 + "\n\n"
+        health_summary += "\n".join(records)
+        
+        logger.info(f"Health records generated for user {user_id}")
+        return health_summary
+        
+    except Exception as e:
+        logger.error(f"Error generating health records: {e}")
+        return f"Error generating health records: {str(e)}"
