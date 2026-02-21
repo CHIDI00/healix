@@ -31,5 +31,5 @@ urlpatterns = [
     path('api/auth/users/', views.user_list, name='user-list'),
     
     # AI ASSISTANT ENDPOINTS
-    path('api/assistant/', include('healix_server.assistant.urls')),
+    path('api/assistant/', include('assistant.urls')),
 ]
