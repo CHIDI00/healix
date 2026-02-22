@@ -8,7 +8,7 @@ class VitalSigns(models.Model):
     and physiological status.
     """
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='vital_signs')
-    timestamp = models.DateTimeField(auto_now_add=True)
+    timestamp = models.CharField(max_length=255)
     
     # Vital Signs Fields
     basal_body_temperature = models.FloatField(
