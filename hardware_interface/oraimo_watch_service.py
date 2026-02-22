@@ -287,7 +287,7 @@ class OraimoWatchService:
                     time.sleep(1)
                     
             except KeyboardInterrupt:
-                break
+                exit()
             except Exception as e:
                 logger.error(f"Service error: {e}")
                 time.sleep(60)

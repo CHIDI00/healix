@@ -7,8 +7,7 @@ from rest_framework.response import Response
 from rest_framework.authtoken.models import Token
 from rest_framework.authtoken.views import ObtainAuthToken
 
-from backend.healix_server.healix_server.models import VitalSigns
-
+from .models import VitalSigns
 from .serializers import RegisterSerializer, UserSerializer, VitalSignsSerializer
 
 class RegisterView(generics.CreateAPIView):
@@ -74,7 +73,7 @@ def update_profile(request):
 
 
 @api_view(['POST'])
-def vitals_pull(request):
+def vitals_push(request):
     """
     List all vitals or create a new vital sign entry
     """
