@@ -15,8 +15,21 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path
+from django.urls import include, path
+from . import views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+
+    # AUTH ENDPOINTS
+    path('api-auth/', include('rest_framework.urls')),  # Browsable API login
+    path('api/auth/register/', views.RegisterView.as_view(), name='register'),
+    path('api/auth/login/', views.LoginView.as_view(), name='login'),
+    path('api/auth/logout/', views.logout_view, name='logout'),
+    path('api/auth/profile/', views.user_profile, name='profile'),
+    path('api/auth/profile/update/', views.update_profile, name='update-profile'),
+    path('api/auth/users/', views.user_list, name='user-list'),
+    
+    # AI ASSISTANT ENDPOINTS
+    path('api/assistant/', include('healix_server.assistant.urls')),
 ]

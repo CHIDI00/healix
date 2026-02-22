@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-11rsia0423-3_u@#z7_c(xmxoyk$gnml#yqa(wy%-5ph$)38$1
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -37,11 +37,19 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    
+    # Local apps
     'healix_server',
+    'assistant',
+    
+    # Third-party apps
     'rest_framework',
+    'rest_framework.authtoken',
+    'corsheaders',
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware', 
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -117,3 +125,13 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
 STATIC_URL = 'static/'
+
+# CORS settings
+CORS_ALLOW_ALL_ORIGINS = True  # TODO: change after deployment
+# CORS_ALLOWED_ORIGINS = [
+#     "http://localhost:3000",
+#     "http://127.0.0.1:3000",
+# ]
+
+# Token settings
+TOKEN_EXPIRED_AFTER_SECONDS = 86400  # 24 hours

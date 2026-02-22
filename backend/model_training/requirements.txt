@@ -1,0 +1,5 @@
+tensorflow-cpu
+pandas
+matplotlib
+keras
+jyputernotebook
