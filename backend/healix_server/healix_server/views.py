@@ -125,7 +125,6 @@ def emergency_contacts(request):
             )
         
         EmergencyContact.objects.create(
-            user=request.user,
             name=name,
             email=email
         )
