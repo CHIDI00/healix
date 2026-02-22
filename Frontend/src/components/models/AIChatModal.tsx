@@ -42,7 +42,7 @@ const AIChatModal = ({ open, onOpenChange }: AIChatModalProps) => {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-3xl h-[33rem] border-slate-200 bg-white">
         <DialogHeader>
-          <DialogTitle className="text-lg font-semibold text-slate-800">Helix</DialogTitle>
+          <DialogTitle className="text-lg font-semibold text-slate-800">Healix</DialogTitle>
         </DialogHeader>
 
         <div className="flex h-72 flex-col gap-3 overflow-y-auto py-2">
@@ -70,7 +70,7 @@ const AIChatModal = ({ open, onOpenChange }: AIChatModalProps) => {
           <Input
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder="Ask Helix..."
+            placeholder="Ask Healix..."
             className="h-10 rounded-xl border-slate-200 bg-slate-50/50 text-sm"
           />
           <Button type="submit" size="icon" className="h-10 w-10 shrink-0 rounded-xl bg-indigo-600 hover:bg-indigo-700">

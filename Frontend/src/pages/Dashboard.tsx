@@ -2,6 +2,7 @@ import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Brain, FileText, Heart, Phone, Settings, Sparkles, Utensils, LogOut } from "lucide-react";
 import AIChatModal from "@/components/models/AIChatModal";
+import VitalsModal from "@/components/models/VitalsModal";
 
 const quickCards = [
   { id: "vitals", label: "Vitals", icon: Heart, preview: "72 BPM", iconColor: "text-rose-500" },
@@ -55,44 +56,50 @@ const Dashboard = ({ onLogout }: DashboardProps) => {
           <span className="text-sm font-medium text-slate-700">Onyeka Joshua</span>
         </div>
 
-        <div className="flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-1.5 shadow-sm">
-          <span className="relative flex h-2 w-2">
-            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
-            <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
-          </span>
-          <span className="text-xs font-medium text-slate-600">Oraimo Watch Synced</span>
-        </div>
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-1.5 shadow-sm">
+            <span className="relative flex h-2 w-2">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
+              <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
+            </span>
 
-        <div className="relative">
-          <button
-            className="rounded-full p-2 text-slate-400 transition hover:bg-slate-100 hover:text-slate-600"
-            onClick={() => setSettingsOpen(!settingsOpen)}
-          >
-            <Settings className="h-5 w-5" />
-          </button>
+            <span className="text-xs font-medium text-slate-600">
+              <span className="md:block hidden">Oraimo Watch Synced</span>
+              <span className="md:hidden block">Active</span>
+            </span>
+          </div>
 
-          <AnimatePresence>
-            {settingsOpen && (
-              <motion.div
-                className="absolute right-0 top-12 z-50 w-40 rounded-xl border border-slate-100 bg-white py-1 shadow-lg"
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                transition={{ duration: 0.15 }}
-              >
-                <button
-                  className="flex w-full items-center gap-2 px-4 py-2 text-left text-sm text-slate-600 transition hover:bg-slate-50 hover:text-red-600"
-                  onClick={() => {
-                    setSettingsOpen(false);
-                    onLogout();
-                  }}
+          <div className="relative">
+            <button
+              className="rounded-full p-2 text-slate-400 transition hover:bg-slate-100 hover:text-slate-600"
+              onClick={() => setSettingsOpen(!settingsOpen)}
+            >
+              <Settings className="h-5 w-5" />
+            </button>
+
+            <AnimatePresence>
+              {settingsOpen && (
+                <motion.div
+                  className="absolute right-0 top-12 z-50 w-40 rounded-xl border border-slate-100 bg-white py-1 shadow-lg"
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  transition={{ duration: 0.15 }}
                 >
-                  <LogOut className="h-4 w-4" />
-                  Logout
-                </button>
-              </motion.div>
-            )}
-          </AnimatePresence>
+                  <button
+                    className="flex w-full items-center gap-2 px-4 py-2 text-left text-sm text-slate-600 transition hover:bg-slate-50 hover:text-red-600"
+                    onClick={() => {
+                      setSettingsOpen(false);
+                      onLogout();
+                    }}
+                  >
+                    <LogOut className="h-4 w-4" />
+                    Logout
+                  </button>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
         </div>
       </header>
 
@@ -111,7 +118,7 @@ const Dashboard = ({ onLogout }: DashboardProps) => {
         >
           <Sparkles className={`mb-2 h-10 w-10 transition ${spikeActive ? "text-red-500" : "text-indigo-500"}`} />
           <span className="text-xs font-medium text-slate-500">Tap to talk to</span>
-          <span className={`text-sm font-semibold ${spikeActive ? "text-red-600" : "text-indigo-600"}`}>Helix</span>
+          <span className={`text-sm font-semibold ${spikeActive ? "text-red-600" : "text-indigo-600"}`}>Healix</span>
         </motion.button>
       </div>
 
@@ -150,6 +157,7 @@ const Dashboard = ({ onLogout }: DashboardProps) => {
 
       {/* Modals */}
       <AIChatModal open={chatOpen} onOpenChange={setChatOpen} />
+      <VitalsModal open={vitalsOpen} onOpenChange={setVitalsOpen} />
     </motion.div>
   );
 };
