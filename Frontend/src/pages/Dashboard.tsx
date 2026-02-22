@@ -1,17 +1,9 @@
 import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import {
-  Brain,
-  FileText,
-  Heart,
-  Phone,
-  Settings,
-  Sparkles,
-  Utensils,
-  LogOut,
-} from "lucide-react";
+import { Brain, FileText, Heart, Phone, Settings, Sparkles, Utensils, LogOut } from "lucide-react";
 import AIChatModal from "@/components/models/AIChatModal";
 import VitalsModal from "@/components/models/VitalsModal";
+import DietitianModal from "@/components/models/DiatitionModal";
 
 const quickCards = [
   {
@@ -23,7 +15,7 @@ const quickCards = [
   },
   {
     id: "diet",
-    label: "Dietitian Protocol",
+    label: "Dietitian",
     icon: Utensils,
     iconColor: "text-amber-500",
   },
@@ -87,55 +79,54 @@ const Dashboard = ({ onLogout }: DashboardProps) => {
       {/* Header */}
       <header className="flex items-center justify-between px-6 py-5">
         <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-indigo-100 text-sm font-semibold text-indigo-600">
-            OJ
-          </div>
-          <span className="text-sm font-medium text-slate-700">
-            Onyeka Joshua
-          </span>
-        </div>
-
-        <div className="flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-1.5 shadow-sm">
-          <span className="relative flex h-2 w-2">
-            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
-            <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
-          </span>
-          <span className="text-xs font-medium text-slate-600">
-            Oraimo Watch Synced
-          </span>
+          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-indigo-100 text-sm font-semibold text-indigo-600">OJ</div>
+          <span className="text-sm font-medium text-slate-700">Onyeka Joshua</span>
         </div>
 
         <div className="flex items-center gap-4">
-          <div className="relative">
-            <button
-              className="rounded-full p-2 text-slate-400 transition hover:bg-slate-100 hover:text-slate-600"
-              onClick={() => setSettingsOpen(!settingsOpen)}
-            >
-              <Settings className="h-5 w-5" />
-            </button>
+          <div className="flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-1.5 shadow-sm">
+            <span className="relative flex h-2 w-2">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
+              <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
+            </span>
+            <span className="text-xs font-medium text-slate-600">
+              <span className="md:hidden block">Active</span>
+              <span className="md:block hidden">Oraimo Watch Synced</span>
+            </span>
+          </div>
 
-            <AnimatePresence>
-              {settingsOpen && (
-                <motion.div
-                  className="absolute right-0 top-12 z-50 w-40 rounded-xl border border-slate-100 bg-white py-1 shadow-lg"
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  transition={{ duration: 0.15 }}
-                >
-                  <button
-                    className="flex w-full items-center gap-2 px-4 py-2 text-left text-sm text-slate-600 transition hover:bg-slate-50 hover:text-red-600"
-                    onClick={() => {
-                      setSettingsOpen(false);
-                      onLogout();
-                    }}
+          <div className="flex items-center gap-4">
+            <div className="relative">
+              <button
+                className="rounded-full p-2 text-slate-400 transition hover:bg-slate-100 hover:text-slate-600"
+                onClick={() => setSettingsOpen(!settingsOpen)}
+              >
+                <Settings className="h-5 w-5" />
+              </button>
+
+              <AnimatePresence>
+                {settingsOpen && (
+                  <motion.div
+                    className="absolute right-0 top-12 z-50 w-40 rounded-xl border border-slate-100 bg-white py-1 shadow-lg"
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    transition={{ duration: 0.15 }}
                   >
-                    <LogOut className="h-4 w-4" />
-                    Logout
-                  </button>
-                </motion.div>
-              )}
-            </AnimatePresence>
+                    <button
+                      className="flex w-full items-center gap-2 px-4 py-2 text-left text-sm text-slate-600 transition hover:bg-slate-50 hover:text-red-600"
+                      onClick={() => {
+                        setSettingsOpen(false);
+                        onLogout();
+                      }}
+                    >
+                      <LogOut className="h-4 w-4" />
+                      Logout
+                    </button>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
           </div>
         </div>
       </header>
@@ -146,36 +137,22 @@ const Dashboard = ({ onLogout }: DashboardProps) => {
           onClick={() => setChatOpen(true)}
           className="relative group flex h-56 w-56 p-0 flex-col items-center justify-center rounded-full border border-indigo-100 bg-white"
           style={{
-            boxShadow: spikeActive
-              ? "0 0 60px rgba(239,68,68,0.4)"
-              : "0 0 60px rgba(99,102,241,0.2)",
+            boxShadow: spikeActive ? "0 0 60px rgba(239,68,68,0.4)" : "0 0 60px rgba(99,102,241,0.2)",
           }}
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.97 }}
           animate={
             spikeActive
               ? {
-                  boxShadow: [
-                    "0 0 40px rgba(239,68,68,0.3)",
-                    "0 0 80px rgba(239,68,68,0.6)",
-                    "0 0 40px rgba(239,68,68,0.3)",
-                  ],
+                  boxShadow: ["0 0 40px rgba(239,68,68,0.3)", "0 0 80px rgba(239,68,68,0.6)", "0 0 40px rgba(239,68,68,0.3)"],
                 }
               : {}
           }
           transition={spikeActive ? { repeat: Infinity, duration: 1.5 } : {}}
         >
-          <Sparkles
-            className={`mb-2 h-10 w-10 transition ${spikeActive ? "text-red-500" : "text-indigo-500"}`}
-          />
-          <span className="text-xs font-medium text-slate-500">
-            Tap to talk to
-          </span>
-          <span
-            className={`text-sm font-semibold ${spikeActive ? "text-red-600" : "text-indigo-600"}`}
-          >
-            Helix
-          </span>
+          <Sparkles className={`mb-2 h-10 w-10 transition ${spikeActive ? "text-red-500" : "text-indigo-500"}`} />
+          <span className="text-xs font-medium text-slate-500">Tap to talk to</span>
+          <span className={`text-sm font-semibold ${spikeActive ? "text-red-600" : "text-indigo-600"}`}>Helix</span>
         </motion.button>
       </div>
 
@@ -197,14 +174,8 @@ const Dashboard = ({ onLogout }: DashboardProps) => {
               className="flex min-w-[120px] flex-[2] flex-col items-center gap-2 rounded-2xl border border-slate-100 bg-white p-4 shadow-sm transition hover:shadow-md"
             >
               <card.icon className={`h-5 w-5 ${card.iconColor}`} />
-              <span className="md:text-lg text-base font-medium text-slate-600">
-                {card.label}
-              </span>
-              {card.preview && (
-                <span className="text-xs font-semibold text-emerald-600">
-                  {card.preview}
-                </span>
-              )}
+              <span className="md:text-lg text-base font-medium text-slate-600">{card.label}</span>
+              {card.preview && <span className="text-xs font-semibold text-emerald-600">{card.preview}</span>}
             </motion.button>
           ))}
         </div>
@@ -222,6 +193,7 @@ const Dashboard = ({ onLogout }: DashboardProps) => {
       <>
         <AIChatModal open={chatOpen} onOpenChange={setChatOpen} />
         <VitalsModal open={vitalsOpen} onOpenChange={setVitalsOpen} />
+        <DietitianModal open={dietOpen} onOpenChange={setDietOpen} />
       </>
     </motion.div>
   );
