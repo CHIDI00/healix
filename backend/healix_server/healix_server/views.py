@@ -111,33 +111,62 @@ def vitals_pull(request):
 
 
 @api_view(['POST'])
+@permission_classes([IsAuthenticated])
 def emergency_contacts(request):
-    """List all contacts or add a new contact"""
+    """Add a new emergency contact for the authenticated user"""
     if request.method == 'POST':
+        name = request.data.get('name')
+        email = request.data.get('email')
+        
+        if not name or not email:
+            return Response(
+                {'error': 'Name and email are required'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
         EmergencyContact.objects.create(
-            name=request.data['name'],
-            email=request.data['email']
+            user=request.user,
+            name=name,
+            email=email
         )
         return Response(status=status.HTTP_200_OK)
     return Response(status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['POST'])
+@permission_classes([IsAuthenticated])
 def send_emergency_alert(request):
     """
     Send emergency email to loved ones via Gmail
     """
-    name = request.POST['name']
-    email = request.POST['email']
-    reason = request.POST['reason']
-    urgency_level = request.POST['urgency_level']
+    name = request.POST.get('name')
+    email = request.POST.get('email')
+    reason = request.POST.get('reason')
+    urgency_level = request.POST.get('urgency_level')
     
-    contacts = EmergencyContact.objects.all()
+    # Validate required fields
+    if not all([name, email, reason, urgency_level]):
+        return Response(
+            {'error': 'Missing required fields: name, email, reason, urgency_level'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
     
+    # Get contacts only for the current user
+    contacts = EmergencyContact.objects.filter(user=request.user)
+    
+    if not contacts.exists():
+        return Response(
+            {'error': 'No emergency contacts found. Please add at least one contact.'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    
+    # Send emails to all contacts
+    sent_count = 0
     for contact in contacts:
-        send_emergency_email(name, email, reason, urgency_level, contact)
+        if send_emergency_email(name, email, reason, urgency_level, contact):
+            sent_count += 1
     
     return Response({
-        'message': f'Emergency alert sent to {len(contacts)} contact(s)'
+        'message': f'Emergency alert sent to {sent_count} contact(s)'
     })
 
 def send_emergency_email(name, email, reason, urgency_level, contact):
@@ -153,19 +182,19 @@ def send_emergency_email(name, email, reason, urgency_level, contact):
             'timestamp': datetime.now().strftime('%B %d, %Y at %I:%M %p'),
         }
         
-        # Render HTML email
-        html_message = render_to_string('emergency_alert_email.html', context)
+        # Render HTML email - using the correct template name
+        html_message = render_to_string('email_template.html', context)
         plain_message = strip_tags(html_message)
         
         # Send email via Gmail SMTP
-        email = EmailMultiAlternatives(
+        email_msg = EmailMultiAlternatives(
             subject="HEALTH EMERGENCY!!",
             body=plain_message,
             from_email=settings.DEFAULT_FROM_EMAIL,
             to=[contact.email]
         )
-        email.attach_alternative(html_message, "text/html")
-        email.send(fail_silently=False)
+        email_msg.attach_alternative(html_message, "text/html")
+        email_msg.send(fail_silently=False)
         
         print(f"Emergency email sent to {contact.email}")
         return True
