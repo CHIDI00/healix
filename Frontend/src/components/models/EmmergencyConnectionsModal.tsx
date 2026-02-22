@@ -58,6 +58,10 @@ const EmergencyConnectionsModal = ({ open, onOpenChange }: EmergencyConnectionsM
     setError(null);
     setSuccessMsg(null);
 
+    const payload = { name: newName.trim(), email: newEmail.trim() };
+    console.log("🚀 [DEBUG AddContact] Sending POST request to:", `${API_BASE_URL}emergency/contacts/`);
+    console.log("🚀 [DEBUG AddContact] Payload:", payload);
+
     try {
       const token = localStorage.getItem("healix_token");
       const response = await fetch(`${API_BASE_URL}emergency/contacts/`, {
@@ -66,18 +70,20 @@ const EmergencyConnectionsModal = ({ open, onOpenChange }: EmergencyConnectionsM
           Authorization: `Token ${token}`,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          name: newName.trim(),
-          email: newEmail.trim(),
-        }),
+        body: JSON.stringify(payload),
       });
 
-      if (!response.ok) {
-        throw new Error("Failed to add contact to the live database.");
-      }
+      console.log("  [DEBUG AddContact] Response Status:", response.status);
 
       const text = await response.text();
+      console.log("  [DEBUG AddContact] Response Body (Raw Text):", text);
+
+      if (!response.ok) {
+        throw new Error(`Server returned ${response.status}: ${text || "Unknown Error"}`);
+      }
+
       const savedData = text ? JSON.parse(text) : {};
+      console.log("✅ [DEBUG AddContact] Parsed Data:", savedData);
 
       setContacts((prev) => [
         ...prev,
@@ -92,6 +98,7 @@ const EmergencyConnectionsModal = ({ open, onOpenChange }: EmergencyConnectionsM
       setNewName("");
       setSuccessMsg("Contact successfully secured in network.");
     } catch (err: unknown) {
+      console.error("❌ [DEBUG AddContact] Crash/Error caught:", err);
       setError(err instanceof Error ? err.message : "An error occurred");
     } finally {
       setIsAdding(false);
@@ -107,17 +114,20 @@ const EmergencyConnectionsModal = ({ open, onOpenChange }: EmergencyConnectionsM
     setError(null);
     setSuccessMsg(null);
 
+    const userStr = localStorage.getItem("healix_user");
+    const user = userStr ? JSON.parse(userStr) : { username: "Patient", email: "patient@healix.app" };
+    const token = localStorage.getItem("healix_token");
+
+    const formData = new URLSearchParams();
+    formData.append("name", user.username || "Patient");
+    formData.append("email", user.email || "patient@healix.app");
+    formData.append("reason", "Critical vitals anomaly detected (Live Demo). Auto-dispatch initiated.");
+    formData.append("urgency_level", "Critical");
+
+    console.log("🚀 [DEBUG SendAlert] Sending POST request to:", `${API_BASE_URL}emergency/send/`);
+    console.log("🚀 [DEBUG SendAlert] Form Data:", Object.fromEntries(formData));
+
     try {
-      const userStr = localStorage.getItem("healix_user");
-      const user = userStr ? JSON.parse(userStr) : { username: "Patient", email: "patient@healix.app" };
-      const token = localStorage.getItem("healix_token");
-
-      const formData = new URLSearchParams();
-      formData.append("name", user.username || "Patient");
-      formData.append("email", user.email || "patient@healix.app");
-      formData.append("reason", "Critical vitals anomaly detected (Live Demo). Auto-dispatch initiated.");
-      formData.append("urgency_level", "Critical");
-
       const response = await fetch(`${API_BASE_URL}emergency/send/`, {
         method: "POST",
         headers: {
@@ -127,17 +137,23 @@ const EmergencyConnectionsModal = ({ open, onOpenChange }: EmergencyConnectionsM
         body: formData.toString(),
       });
 
-      if (!response.ok) {
-        throw new Error("Backend server not responding. Tell backend dev to click 'Reload' on PythonAnywhere!");
-      }
+      console.log("  [DEBUG SendAlert] Response Status:", response.status);
 
       const text = await response.text();
-      const data = text ? JSON.parse(text) : {};
+      console.log("  [DEBUG SendAlert] Response Body (Raw Text):", text);
 
-      await new Promise((res) => setTimeout(res, 800));
+      if (!response.ok) {
+        throw new Error(`Server returned ${response.status}: ${text || "Backend server not responding."}`);
+      }
+
+      const data = text ? JSON.parse(text) : {};
+      console.log("✅ [DEBUG SendAlert] Parsed Data:", data);
+
+      await new Promise((res) => setTimeout(res, 800)); // UI Pause
 
       setSuccessMsg(data.message || "EMERGENCY: Real alert dispatched to Care Team inboxes.");
     } catch (err: unknown) {
+      console.error("❌ [DEBUG SendAlert] Crash/Error caught:", err);
       setError(err instanceof Error ? err.message : "An error occurred");
     } finally {
       setIsAlerting(false);
