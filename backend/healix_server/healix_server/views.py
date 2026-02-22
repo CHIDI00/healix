@@ -106,7 +106,7 @@ def vitals_pull(request):
 def emergency_contacts(request):
     # return list of contacts
     if request.method == 'POST':
-        contacts = EmergencyContact.objects.filter(user=request.user)
+        contacts = EmergencyContact.objects.all()
         json_data = []
         for contact in contacts:
             json_data.append({
