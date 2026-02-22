@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .header {
+            padding: 20px;
+            text-align: center;
+            border-radius: 5px 5px 0 0;
+        }
+        .critical { background-color: #dc3545; color: white; }
+        .high { background-color: #fd7e14; color: white; }
+        .medium { background-color: #ffc107; color: #333; }
+        .low { background-color: #17a2b8; color: white; }
+        .content {
+            padding: 20px;
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-top: none;
+            border-radius: 0 0 5px 5px;
+        }
+        .section {
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: white;
+            border-radius: 5px;
+            border-left: 4px solid #007bff;
+        }
+        .emergency-box {
+            background-color: #fff3cd;
+            border: 1px solid #ffeeba;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+        }
+        .footer {
+            margin-top: 20px;
+            padding: 10px;
+            text-align: center;
+            font-size: 0.9em;
+            color: #6c757d;
+            border-top: 1px solid #dee2e6;
+        }
+        .button {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    {% if level == 'critical' %}
+    <div class="header critical">
+        <h1>🆘 CRITICAL EMERGENCY 🆘</h1>
+    </div>
+    {% elif level == 'high' %}
+    <div class="header high">
+        <h1>🚨 URGENT EMERGENCY 🚨</h1>
+    </div>
+    {% elif level == 'medium' %}
+    <div class="header medium">
+        <h1>⚠️ Medical Concern ⚠️</h1>
+    </div>
+    {% else %}
+    <div class="header low">
+        <h1>ℹ️ Health Update ℹ️</h1>
+    </div>
+    {% endif %}
+    
+    <div class="content">
+        <p>Dear <strong>{{ contact_name }}</strong>,</p>
+        
+        <div class="emergency-box">
+            <p style="font-size: 1.1em;">This is an automated emergency alert regarding <strong>{{ user_name }}</strong>.</p>
+        </div>
+        
+        <div class="section">
+            <h3>Emergency Details:</h3>
+            <p><strong>Time:</strong> {{ timestamp }}</p>
+            <p><strong>Reason:</strong> {{ reason }}</p>
+        </div>
+        
+        <div class="section">
+            <h3>What You Should Do:</h3>
+            <ul>
+                <li>Contact {{ user_name }} immediately</li>
+                {% if level == 'critical' or level == 'high' %}
+                <li><strong>If no response within 10 minutes, call emergency services (911)</strong></li>
+                <li>If you're nearby, please go check on them</li>
+                {% else %}
+                <li>Check in on them and offer assistance</li>
+                {% endif %}
+                <li>Share this alert with other family members</li>
+            </ul>
+        </div>
+        
+        <div class="section">
+            <h3>Reply Information:</h3>
+            <p>To respond to this alert, please contact {{ user_name }} directly at: <strong>{{ user_email }}</strong></p>
+        </div>
+        
+        <p style="font-style: italic; color: #666;">This is an automated message from the Healix Emergency Response System.</p>
+        
+        <div class="footer">
+            <p>Sent: {{ timestamp }}</p>
+            <p>© {% now "Y" %} Healix Healthcare. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html>

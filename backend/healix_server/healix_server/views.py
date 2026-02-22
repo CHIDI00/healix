@@ -1,5 +1,13 @@
+from datetime import datetime
+
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
+from django.http import JsonResponse
+from django.core.mail import send_mail, EmailMultiAlternatives
+from django.template.loader import render_to_string
+from django.utils.html import strip_tags
+from django.conf import settings
+from django.db import models
 from rest_framework import status, generics
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny, IsAuthenticated
@@ -7,7 +15,8 @@ from rest_framework.response import Response
 from rest_framework.authtoken.models import Token
 from rest_framework.authtoken.views import ObtainAuthToken
 
-from .models import VitalSigns
+
+from .models import VitalSigns, EmergencyContact
 from .serializers import RegisterSerializer, UserSerializer, VitalSignsSerializer
 
 class RegisterView(generics.CreateAPIView):
@@ -78,6 +87,15 @@ def vitals_push(request):
     """
     List all vitals or create a new vital sign entry
     """
+    if request.method == 'GET':
+        contacts = EmergencyContact.objects.filter(user=request.user)
+        json_data = []
+        for contact in contacts:
+            json_data.append({
+                'name': contact.name,
+                'email': contact.email
+            })
+        return JsonResponse(json_data)
     if request.method == 'POST':
         serializer = VitalSignsSerializer(data=request.data)
         if serializer.is_valid():
@@ -91,3 +109,67 @@ def vitals_pull(request):
     vital = VitalSigns.objects.last()
     return Response(VitalSignsSerializer(vital).data)
 
+
+@api_view(['POST'])
+def emergency_contacts(request):
+    """List all contacts or add a new contact"""
+    if request.method == 'POST':
+        EmergencyContact.objects.create(
+            name=request.data['name'],
+            email=request.data['email']
+        )
+        return Response(status=status.HTTP_200_OK)
+    return Response(status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['POST'])
+def send_emergency_alert(request):
+    """
+    Send emergency email to loved ones via Gmail
+    """
+    name = request.POST['name']
+    email = request.POST['email']
+    reason = request.POST['reason']
+    urgency_level = request.POST['urgency_level']
+    
+    contacts = EmergencyContact.objects.all()
+    
+    for contact in contacts:
+        send_emergency_email(name, email, reason, urgency_level, contact)
+    
+    return Response({
+        'message': f'Emergency alert sent to {len(contacts)} contact(s)'
+    })
+
+def send_emergency_email(name, email, reason, urgency_level, contact):
+    """Send emergency email via Gmail"""
+    try:
+        # Context for email template
+        context = {
+            'contact_name': contact.name,
+            'user_name': name,
+            'user_email': email,
+            'level': urgency_level,
+            'reason': reason,
+            'timestamp': datetime.now().strftime('%B %d, %Y at %I:%M %p'),
+        }
+        
+        # Render HTML email
+        html_message = render_to_string('emergency_alert_email.html', context)
+        plain_message = strip_tags(html_message)
+        
+        # Send email via Gmail SMTP
+        email = EmailMultiAlternatives(
+            subject="HEALTH EMERGENCY!!",
+            body=plain_message,
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            to=[contact.email]
+        )
+        email.attach_alternative(html_message, "text/html")
+        email.send(fail_silently=False)
+        
+        print(f"Emergency email sent to {contact.email}")
+        return True
+        
+    except Exception as e:
+        print(f"Email error: {e}")
+        return False
