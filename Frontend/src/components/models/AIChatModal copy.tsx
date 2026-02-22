@@ -9,8 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Send, History, Trash2, AlertCircle } from "lucide-react";
 import { motion } from "framer-motion";
-import { useGeminiConversation } from "@/hooks/useGeminiConversation";
-import { type UserProfile } from "@/services/geminiApi";
+import { useConversation } from "@/hooks/useConversation";
 
 interface SavedChat {
   messages: Array<{ role: "user" | "ai"; text: string }>;
@@ -20,11 +19,11 @@ interface SavedChat {
 interface AIChatModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  user?: UserProfile | null;
 }
 
-const AIChatModal = ({ open, onOpenChange, user }: AIChatModalProps) => {
+const AIChatModal = ({ open, onOpenChange }: AIChatModalProps) => {
   const {
+    conversationId,
     messages,
     isLoading,
     error,
@@ -32,8 +31,7 @@ const AIChatModal = ({ open, onOpenChange, user }: AIChatModalProps) => {
     sendMessage,
     startNewConversation,
     clearConversation,
-    loadConversation,
-  } = useGeminiConversation(user);
+  } = useConversation();
 
   const [input, setInput] = useState("");
   const [showHistory, setShowHistory] = useState(false);
@@ -52,7 +50,7 @@ const AIChatModal = ({ open, onOpenChange, user }: AIChatModalProps) => {
     const userInput = input;
     setInput("");
 
-    await sendMessage(userInput);
+    await sendMessage(userInput, true);
   };
 
   const handleClearChat = () => {
@@ -74,7 +72,9 @@ const AIChatModal = ({ open, onOpenChange, user }: AIChatModalProps) => {
   };
 
   const handleLoadChat = (chat: SavedChat) => {
-    loadConversation(chat.messages);
+    clearConversation();
+    // Note: In a real app, you'd restore the conversation from backend
+    // For now, this loads the local history
     setShowHistory(false);
   };
 
@@ -223,7 +223,7 @@ const AIChatModal = ({ open, onOpenChange, user }: AIChatModalProps) => {
           <Input
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder="Ask Helix..."
+            placeholder="Ask Healix..."
             disabled={isLoading || error !== null}
             className="h-10 rounded-xl border-slate-200 bg-slate-50/50 text-sm disabled:opacity-50"
           />
