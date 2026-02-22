@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import { AlertCircle, Eye, EyeOff, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom"; // Added useNavigate
 import logo from "../../asset/healixlogo.png";
 
 interface LoginProps {
@@ -16,6 +16,8 @@ const Login = ({ onLogin }: LoginProps) => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
+
+  const navigate = useNavigate();
 
   const API_BASE_URL = `${import.meta.env.VITE_API_BASE_URL}auth`;
 
@@ -50,6 +52,8 @@ const Login = ({ onLogin }: LoginProps) => {
       );
 
       onLogin();
+
+      navigate("/dashboard");
     } catch (err: Error | unknown) {
       setError(err instanceof Error ? err.message : "An error occurred");
     } finally {
