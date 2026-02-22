@@ -34,6 +34,6 @@ urlpatterns = [
     path('api/assistant/', include('assistant.urls')),
 
     # Vital Signs Endpoints
-    path('api/vitals/push', views.vitals_push),
-    path('api/vitals/pull', views.vitals_pull),
+    path('api/vitals/push/', views.vitals_push),
+    path('api/vitals/pull/', views.vitals_pull),
 ]

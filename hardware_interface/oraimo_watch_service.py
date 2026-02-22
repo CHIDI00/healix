@@ -216,7 +216,7 @@ class OraimoWatchService:
         
         try:
             response = requests.post(
-                f"{api_url}/vitals/",
+                f"{api_url}",
                 headers=headers,
                 json=payload,
                 timeout=5
