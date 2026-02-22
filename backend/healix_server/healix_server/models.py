@@ -409,7 +409,6 @@ class Sleep(models.Model):
 
 class EmergencyContact(models.Model):
     """Emergency contact information for users"""
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='emergency_contacts')
     name = models.CharField(max_length=100)
     email = models.EmailField()
     
