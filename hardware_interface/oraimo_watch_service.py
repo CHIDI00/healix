@@ -334,7 +334,7 @@ WantedBy=multi-user.target
 
 if __name__ == "__main__":
     import argparse
-    while not stable: OraimoWatchService("69:9B:B8:F3:80:5E").run("https://helix4.pythonanywhere.com/api/vitals/push/", token="4a7fa8a2a91dd54be14917f9024e02dbef3900ef")
+    while not stable: OraimoWatchService("69:9B:B8:F3:80:5E").run("https://helix4.pythonanywhere.com/api/vitals/push/", token="639bfccbc7f1b40aeeb6952403bc332de1f58b16")
         
     
     parser = argparse.ArgumentParser(description='Oraimo Watch Bluetooth Service')
