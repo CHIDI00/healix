@@ -60,7 +60,7 @@ const EmergencyConnectionsModal = ({ open, onOpenChange }: EmergencyConnectionsM
 
     try {
       const token = localStorage.getItem("healix_token");
-      await fetch(`${API_BASE_URL}emergency/contacts/`, {
+      const response = await fetch(`${API_BASE_URL}emergency/contacts/`, {
         method: "POST",
         headers: {
           Authorization: `Token ${token}`,
@@ -71,13 +71,18 @@ const EmergencyConnectionsModal = ({ open, onOpenChange }: EmergencyConnectionsM
           email: newEmail.trim(),
         }),
       });
-    } catch (err: unknown) {
-      console.warn("Backend save failed, but proceeding with local UI update for demo.");
-    } finally {
+
+      if (!response.ok) {
+        throw new Error("Failed to add contact to the live database.");
+      }
+
+      const text = await response.text();
+      const savedData = text ? JSON.parse(text) : {};
+
       setContacts((prev) => [
         ...prev,
         {
-          id: Date.now().toString(),
+          id: savedData.id || Date.now().toString(),
           name: newName.trim(),
           email: newEmail.trim(),
           role: "Emergency Contact",
@@ -86,6 +91,9 @@ const EmergencyConnectionsModal = ({ open, onOpenChange }: EmergencyConnectionsM
       setNewEmail("");
       setNewName("");
       setSuccessMsg("Contact successfully secured in network.");
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "An error occurred");
+    } finally {
       setIsAdding(false);
     }
   };
@@ -123,7 +131,9 @@ const EmergencyConnectionsModal = ({ open, onOpenChange }: EmergencyConnectionsM
         throw new Error("Backend server not responding. Tell backend dev to click 'Reload' on PythonAnywhere!");
       }
 
-      const data = await response.json();
+      const text = await response.text();
+      const data = text ? JSON.parse(text) : {};
+
       await new Promise((res) => setTimeout(res, 800));
 
       setSuccessMsg(data.message || "EMERGENCY: Real alert dispatched to Care Team inboxes.");
@@ -134,47 +144,11 @@ const EmergencyConnectionsModal = ({ open, onOpenChange }: EmergencyConnectionsM
     }
   };
 
-  // const triggerEmergencyAlert = async () => {
-  //   setIsAlerting(true);
-  //   setError(null);
-  //   setSuccessMsg(null);
-
-  //   try {
-  //     if (contacts.length === 0) {
-  //       throw new Error("Add an emergency contact first.");
-  //     }
-
-  //     const emailList = contacts.map((c) => c.email).join(",");
-
-  //     const userStr = localStorage.getItem("healix_user");
-  //     const user = userStr ? JSON.parse(userStr) : { username: "Patient" };
-
-  //     const subject = encodeURIComponent(`🚨 CRITICAL HEALTH ALERT: Auto-Dispatch for ${user.username}`);
-  //     const body = encodeURIComponent(
-  //       `Hello,\n\nYou are receiving this automated alert because you are listed as an emergency contact on the Healix Medical Network for ${user.username}.\n\n` +
-  //         `Our hardware telemetry has detected a CRITICAL VITALS ANOMALY (Live Hackathon Demo).\n\n` +
-  //         `Please reach out to the patient immediately or dispatch emergency services to their last known location.\n\n` +
-  //         `Severity: CRITICAL\n\n` +
-  //         `- The Healix AI Agent`,
-  //     );
-
-  //     await new Promise((resolve) => setTimeout(resolve, 1500));
-
-  //     window.location.href = `mailto:${emailList}?subject=${subject}&body=${body}`;
-
-  //     setSuccessMsg("EMERGENCY: Real alert dispatched to Care Team.");
-  //   } catch (err: unknown) {
-  //     setError(err instanceof Error ? err.message : "An error occurred");
-  //   } finally {
-  //     setIsAlerting(false);
-  //   }
-  // };
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg border-slate-200 bg-[#FAFAFA] overflow-y-auto h-[38rem] sm:max-w-2xl">
         <DialogHeader>
-          <DialogTitle className="text-xl font-semibold text-slate-800">Emergency Connections</DialogTitle>
+          <DialogTitle className="flex items-center text-xl font-semibold text-slate-800">Emergency Connections</DialogTitle>
         </DialogHeader>
 
         {/* Alert Info */}
