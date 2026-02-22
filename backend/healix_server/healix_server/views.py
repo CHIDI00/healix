@@ -29,7 +29,7 @@ class LoginView(ObtainAuthToken):
     
     def post(self, request, *args, **kwargs):
         serializer = self.serializer_class(data=request.data,
-                                           context={'request': request})
+                                         context={'request': request})
         serializer.is_valid(raise_exception=True)
         user = serializer.validated_data['user']
         token, created = Token.objects.get_or_create(user=user)
@@ -81,24 +81,18 @@ def update_profile(request):
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-@api_view(['GET', 'POST']) # FIX 1: Added GET to satisfy the React Sync requirement
+@api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def vitals_push(request):
     """
     List all vitals or create a new vital sign entry
     """
-    if request.method == 'GET':
-        # React frontend uses this to fetch emergency contacts
-        contacts = EmergencyContact.objects.filter(user=request.user)
-        json_data = [{'id': c.id, 'name': c.name, 'email': c.email} for c in contacts]
-        return Response(json_data)
-
     if request.method == 'POST':
         serializer = VitalSignsSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save(user=request.user)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    return Response(serializer.errors, status=status.HTTP_403_FORBIDDEN)
 
 
 @api_view(['GET'])
@@ -110,26 +104,21 @@ def vitals_pull(request):
 @api_view(['GET', 'POST'])
 @permission_classes([IsAuthenticated])
 def emergency_contacts(request):
-    # FIX 2: Properly handled saving the contact to the correct user
+    # return list of contacts
     if request.method == 'GET':
-        contacts = EmergencyContact.objects.filter(user=request.user)
-        json_data = [{'id': c.id, 'name': c.name, 'email': c.email} for c in contacts]
-        return Response(json_data) # Response automatically handles lists correctly
-        
+        contacts = EmergencyContact.objects.all()
+        json_data = []
+        for contact in contacts:
+            json_data.append({
+                'name': contact.name,
+                'email': contact.email
+            })
+        return Response({"contacts": json_data}, safe=False)
     elif request.method == 'POST':
         name = request.data.get('name')
         email = request.data.get('email')
-        
-        # Saved to the logged-in user instead of floating in the database
-        contact = EmergencyContact.objects.create(user=request.user, name=name, email=email)
-        
-        # Returns the JSON dict so frontend doesn't crash
-        return Response({
-            "id": contact.id,
-            "name": contact.name,
-            "email": contact.email
-        }, status=status.HTTP_201_CREATED)
-
+        EmergencyContact.objects.create(name=name, email=email)
+        return Response(status=status.HTTP_201_CREATED)
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
@@ -137,24 +126,19 @@ def send_emergency_alert(request):
     """
     Send emergency email to loved ones via Gmail
     """
-    name = request.POST.get('name', 'Patient')
-    email = request.POST.get('email', 'Unknown')
-    reason = request.POST.get('reason', 'Critical Alert')
-    urgency_level = request.POST.get('urgency_level', 'High')
+    name = request.POST.get('name')
+    email = request.POST.get('email')
+    reason = request.POST.get('reason')
+    urgency_level = request.POST.get('urgency_level')
     
-    # FIX 3: Ensures it only emails the contacts belonging to the logged-in user
+   
+    # Get contacts only for the current user
     contacts = EmergencyContact.objects.all()
 
-    success_count = 0
     for contact in contacts:
-        if send_emergency_email(name, email, reason, urgency_level, contact):
-            success_count += 1
+        send_emergency_email(name, email, reason, urgency_level, contact)
     
-    # FIX 4: Returns a proper JSON message so React doesn't throw a JSON parser error
-    return Response({
-        "message": f"Emergency alert sent to {success_count} contact(s)"
-    }, status=status.HTTP_200_OK)
-
+    return Response(status=status.HTTP_200_OK)
 
 def send_emergency_email(name, email, reason, urgency_level, contact):
     """Send emergency email via Gmail"""
@@ -175,7 +159,7 @@ def send_emergency_email(name, email, reason, urgency_level, contact):
         
         # Send email via Gmail SMTP
         email_msg = EmailMultiAlternatives(
-            subject=f"🚨 HEALTH EMERGENCY: {name}",
+            subject="HEALTH EMERGENCY!!",
             body=plain_message,
             from_email=settings.DEFAULT_FROM_EMAIL,
             to=[contact.email]
