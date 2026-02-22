@@ -223,7 +223,7 @@ const AIChatModal = ({ open, onOpenChange, user }: AIChatModalProps) => {
           <Input
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder="Ask Healix..."
+            placeholder="Ask Helix..."
             disabled={isLoading || error !== null}
             className="h-10 rounded-xl border-slate-200 bg-slate-50/50 text-sm disabled:opacity-50"
           />
