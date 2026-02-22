@@ -1,5 +1,3 @@
-// src/services/geminiService.ts
-
 export interface GeminiMessage {
   role: "user" | "ai";
   text: string;
@@ -16,6 +14,14 @@ interface GeminiGenerateResponse {
     content?: {
       parts?: Array<{
         text?: string;
+        // Added functionCall to the interface so TypeScript doesn't disturb
+        functionCall?: {
+          name: string;
+          args: {
+            reason: string;
+            urgencyLevel: string;
+          };
+        };
       }>;
     };
   }>;
@@ -55,6 +61,33 @@ When analyzing health data:
 - Consider the context of the user's activities and lifestyle
 - Identify potential areas for improvement
 - Celebrate positive health habits`;
+
+const tools = [
+  {
+    functionDeclarations: [
+      {
+        name: "alert_caregiver",
+        description:
+          "Trigger an emergency SMS alert to the user's registered caregiver. Use this ONLY if the health data indicates a severe anomaly or the user requests emergency help.",
+        parameters: {
+          type: "OBJECT",
+          properties: {
+            reason: {
+              type: "STRING",
+              description:
+                "The medical reason for the alert (e.g., 'Heart rate dropped to 40 bpm')",
+            },
+            urgencyLevel: {
+              type: "STRING",
+              description: "Either 'HIGH' or 'CRITICAL'",
+            },
+          },
+          required: ["reason", "urgencyLevel"],
+        },
+      },
+    ],
+  },
+];
 
 const buildContents = (messages: GeminiMessage[]) => {
   return messages.map((message) => ({
@@ -101,11 +134,11 @@ Use this data to personalize your responses. If the user asks about their heart 
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        // This is where we inject your custom persona
         systemInstruction: {
           parts: [{ text: dynamicPrompt }],
         },
         contents: buildContents(messages),
+        tools: tools,
         generationConfig: {
           temperature: 0.7,
           maxOutputTokens: 700,
@@ -122,10 +155,23 @@ Use this data to personalize your responses. If the user asks about their heart 
     );
   }
 
-  const text = data.candidates?.[0]?.content?.parts
-    ?.map((part) => part.text || "")
-    .join("")
-    .trim();
+  const firstPart = data.candidates?.[0]?.content?.parts?.[0];
+
+  if (firstPart?.functionCall) {
+    const call = firstPart.functionCall;
+
+    if (call.name === "alert_caregiver") {
+      const { reason, urgencyLevel } = call.args;
+
+      console.log(`🚨 API TOOL TRIGGERED: ${urgencyLevel} - ${reason}`);
+
+      // Short circuit the chat and return the emergency UI text directly
+      return `🚨 **EMERGENCY ALERT SENT** 🚨\n\nI detected a critical situation and have immediately notified your emergency contacts and caregiver. \n\n**Reason:** ${reason}. \n\nPlease stay calm and sit down. Help is on the way.`;
+    }
+  }
+
+  // If no emergency, just return the standard text reply
+  const text = firstPart?.text?.trim();
 
   if (!text) {
     throw new Error("Gemini returned an empty response.");
