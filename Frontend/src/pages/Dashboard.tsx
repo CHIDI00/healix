@@ -370,7 +370,7 @@ const Dashboard = ({ onLogout }: DashboardProps) => {
 
   return (
     <motion.div
-      className="relative flex min-h-screen flex-col max-w-[90rem] mx-auto"
+      className="relative flex min-h-screen flex-col max-w-[100rem] mx-auto"
       style={{ backgroundColor: spikeActive ? "#fff1f2" : "#FAFAFA" }}
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}

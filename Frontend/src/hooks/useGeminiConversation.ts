@@ -28,19 +28,24 @@ export const useGeminiConversation = (user?: UserProfile | null) => {
       }
 
       const userMessage: GeminiMessage = { role: "user", text: trimmed };
-      const currentMessages = state.messages;
-      const updatedMessages = [...currentMessages, userMessage];
 
-      setState((prev) => ({
-        ...prev,
-        error: null,
-        isLoading: true,
-        isAiTyping: true,
-        messages: [...prev.messages, userMessage],
-      }));
+      // We capture the exact array we want to send to the API right here
+      // to avoid React state closure bugs.
+      let payloadMessages: GeminiMessage[] = [];
+
+      setState((prev) => {
+        payloadMessages = [...prev.messages, userMessage];
+        return {
+          ...prev,
+          error: null,
+          isLoading: true,
+          isAiTyping: true,
+          messages: payloadMessages,
+        };
+      });
 
       try {
-        const aiReply = await generateGeminiReply(updatedMessages, user);
+        const aiReply = await generateGeminiReply(payloadMessages, user);
 
         setState((prev) => ({
           ...prev,
@@ -51,15 +56,17 @@ export const useGeminiConversation = (user?: UserProfile | null) => {
       } catch (error) {
         const message =
           error instanceof Error ? error.message : "Failed to get AI response";
+
         setState((prev) => ({
           ...prev,
           error: message,
           isLoading: false,
           isAiTyping: false,
+          messages: prev.messages.slice(0, -1),
         }));
       }
     },
-    [state.messages],
+    [user],
   );
 
   const clearConversation = useCallback(() => {
