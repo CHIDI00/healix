@@ -218,7 +218,6 @@ class OraimoWatchService:
         try:
             response = requests.post(
                 f"{api_url}",
-                Authorization=f"Bearer {token}",
                 headers=headers,
                 json=payload,
                 timeout=5
