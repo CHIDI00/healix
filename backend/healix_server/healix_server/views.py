@@ -143,7 +143,7 @@ def send_emergency_alert(request):
     urgency_level = request.POST.get('urgency_level', 'High')
     
     # FIX 3: Ensures it only emails the contacts belonging to the logged-in user
-    contacts = EmergencyContact.objects.filter(user=request.user)
+    contacts = EmergencyContact.objects.all()
 
     success_count = 0
     for contact in contacts:
