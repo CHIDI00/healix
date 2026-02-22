@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Brain, FileText, Heart, Phone, Settings, Sparkles, Utensils } from "lucide-react";
+import { Brain, FileText, Heart, Phone, Settings, Sparkles, Utensils, LogOut } from "lucide-react";
 
 const quickCards = [
   { id: "vitals", label: "Vitals", icon: Heart, preview: "72 BPM", iconColor: "text-rose-500" },
@@ -10,7 +10,11 @@ const quickCards = [
   { id: "emergency", label: "Emergency Connections", icon: Phone, iconColor: "text-red-500" },
 ];
 
-const Dashboard = () => {
+interface DashboardProps {
+  onLogout: () => void;
+}
+
+const Dashboard = ({ onLogout }: DashboardProps) => {
   const [spikeActive, setSpikeActive] = useState(false);
   const [chatOpen, setChatOpen] = useState(false);
   const [vitalsOpen, setVitalsOpen] = useState(false);
@@ -18,10 +22,11 @@ const Dashboard = () => {
   const [summaryOpen, setSummaryOpen] = useState(false);
   const [healthOpen, setHealthOpen] = useState(false);
   const [dietOpen, setDietOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
 
   return (
     <motion.div
-      className="relative flex min-h-screen flex-col"
+      className="relative flex min-h-screen flex-col max-w-[185rem] mx-auto"
       style={{ backgroundColor: spikeActive ? "#fff1f2" : "#FAFAFA" }}
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
@@ -57,9 +62,37 @@ const Dashboard = () => {
           <span className="text-xs font-medium text-slate-600">Oraimo Watch Synced</span>
         </div>
 
-        <button className="rounded-full p-2 text-slate-400 transition hover:bg-slate-100 hover:text-slate-600">
-          <Settings className="h-5 w-5" />
-        </button>
+        <div className="relative">
+          <button
+            className="rounded-full p-2 text-slate-400 transition hover:bg-slate-100 hover:text-slate-600"
+            onClick={() => setSettingsOpen(!settingsOpen)}
+          >
+            <Settings className="h-5 w-5" />
+          </button>
+
+          <AnimatePresence>
+            {settingsOpen && (
+              <motion.div
+                className="absolute right-0 top-12 z-50 w-40 rounded-xl border border-slate-100 bg-white py-1 shadow-lg"
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.15 }}
+              >
+                <button
+                  className="flex w-full items-center gap-2 px-4 py-2 text-left text-sm text-slate-600 transition hover:bg-slate-50 hover:text-red-600"
+                  onClick={() => {
+                    setSettingsOpen(false);
+                    onLogout();
+                  }}
+                >
+                  <LogOut className="h-4 w-4" />
+                  Logout
+                </button>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
       </header>
 
       {/* AI Hero Button */}
@@ -105,6 +138,14 @@ const Dashboard = () => {
           ))}
         </div>
       </div>
+
+      {/* Simulate Spike Button */}
+      <button
+        onClick={() => setSpikeActive((p) => !p)}
+        className="fixed bottom-1 right-4 z-40 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-sm font-medium text-slate-400 shadow-sm transition hover:bg-slate-50"
+      >
+        {spikeActive ? "Reset" : "Simulate Spike"}
+      </button>
     </motion.div>
   );
 };
