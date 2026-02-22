@@ -113,7 +113,7 @@ def emergency_contacts(request):
                 'name': contact.name,
                 'email': contact.email
             })
-        return JsonResponse(json_data)
+        return Response({"contacts": json_data})
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
