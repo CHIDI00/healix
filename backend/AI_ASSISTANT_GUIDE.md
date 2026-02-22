@@ -24,7 +24,7 @@ The Healthcare AI Assistant is a powerful AI-driven system that acts as a person
 ### 1. Install Required Package
 
 ```bash
-pip install google-generativeai
+pip install google-generativeai python-dotenv
 ```
 
 ### 2. Set Environment Variable

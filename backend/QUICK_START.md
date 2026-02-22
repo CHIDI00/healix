@@ -16,6 +16,7 @@ A complete AI-powered healthcare assistant system using Google's Gemini 1.5 Pro 
 ```bash
 cd backend/healix_server
 pip install -r requirements.txt
+pip install python-dotenv
 ```
 
 ### 2. Set API Key
