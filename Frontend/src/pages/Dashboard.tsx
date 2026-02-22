@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Brain, FileText, Heart, Phone, Settings, Sparkles, Utensils, LogOut } from "lucide-react";
+import AIChatModal from "@/components/models/AIChatModal";
 
 const quickCards = [
   { id: "vitals", label: "Vitals", icon: Heart, preview: "72 BPM", iconColor: "text-rose-500" },
@@ -146,6 +147,9 @@ const Dashboard = ({ onLogout }: DashboardProps) => {
       >
         {spikeActive ? "Reset" : "Simulate Spike"}
       </button>
+
+      {/* Modals */}
+      <AIChatModal open={chatOpen} onOpenChange={setChatOpen} />
     </motion.div>
   );
 };
