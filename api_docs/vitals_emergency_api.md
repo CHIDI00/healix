@@ -27,7 +27,7 @@ Upload new vital sign measurements.
   ```
 - **Response:** `201 Created` with the saved data.
 
-> **Note:** Sending a `GET` request to `/api/vitals/push/` returns the user's emergency contacts list.
+> **Note:** Sending a `GET` request to `/api/vitals/push/` 
 
 ### 2. Pull Vitals
 Retrieve the most recent vital signs recording.
@@ -53,7 +53,7 @@ Register a new contact to be notified in emergencies.
 
 - **URL:** `/api/emergency/contacts/`
 - **Method:** `POST`
-- **Authentication:** Public
+- **Authentication:** Private
 - **Request Body:**
   ```json
   {
@@ -68,7 +68,7 @@ Trigger an email alert to all registered emergency contacts.
 
 - **URL:** `/api/emergency/send/`
 - **Method:** `POST`
-- **Authentication:** Public
+- **Authentication:** Private
 - **Content-Type:** `application/x-www-form-urlencoded` or `multipart/form-data`
 - **Parameters:**
   - `name`: Name of the person in distress

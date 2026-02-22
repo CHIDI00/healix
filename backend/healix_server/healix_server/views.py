@@ -87,15 +87,6 @@ def vitals_push(request):
     """
     List all vitals or create a new vital sign entry
     """
-    if request.method == 'GET':
-        contacts = EmergencyContact.objects.filter(user=request.user)
-        json_data = []
-        for contact in contacts:
-            json_data.append({
-                'name': contact.name,
-                'email': contact.email
-            })
-        return JsonResponse(json_data)
     if request.method == 'POST':
         serializer = VitalSignsSerializer(data=request.data)
         if serializer.is_valid():
@@ -113,23 +104,16 @@ def vitals_pull(request):
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def emergency_contacts(request):
-    """Add a new emergency contact for the authenticated user"""
+    # return list of contacts
     if request.method == 'POST':
-        name = request.data.get('name')
-        email = request.data.get('email')
-        
-        if not name or not email:
-            return Response(
-                {'error': 'Name and email are required'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        
-        EmergencyContact.objects.create(
-            name=name,
-            email=email
-        )
-        return Response(status=status.HTTP_200_OK)
-    return Response(status=status.HTTP_400_BAD_REQUEST)
+        contacts = EmergencyContact.objects.filter(user=request.user)
+        json_data = []
+        for contact in contacts:
+            json_data.append({
+                'name': contact.name,
+                'email': contact.email
+            })
+        return JsonResponse(json_data)
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
