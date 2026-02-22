@@ -117,7 +117,7 @@ const Login = ({ onLogin }: LoginProps) => {
             </button>
           </div>
           <Button type="submit" className="h-12 w-full rounded-xl bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700">
-            Log In
+            {isLoading ? "Logging in..." : "Log In"}
           </Button>
         </form>
 
