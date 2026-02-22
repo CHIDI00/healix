@@ -151,7 +151,7 @@ export const generateGeminiReply = async (
 
   const liveVitals = await fetchLiveVitals();
 
-  // FIXED: Tells the AI exactly what to do if the hardware is disconnected
+  // Tells the AI exactly what to do if the hardware is disconnected
   const vitalsContext = liveVitals
     ? `### LIVE SENSOR DATA:
 - Heart Rate: ${liveVitals.heart_rate ?? "N/A"} BPM
