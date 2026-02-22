@@ -40,13 +40,11 @@ const Signup = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Strict Frontend Password Validation
     if (formData.password !== formData.password2) {
       setError("Passwords do not match.");
       return;
     }
 
-    // Optional: Add a basic strength check here if you want
     if (formData.password.length < 8) {
       setError("Password must be at least 8 characters long.");
       return;
@@ -55,7 +53,6 @@ const Signup = () => {
     setIsLoading(true);
     setError(null);
 
-    // Create a payload that excludes password2 to send to the backend
     const { password2, ...payloadData } = formData;
 
     try {
