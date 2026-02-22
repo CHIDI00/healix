@@ -1,0 +1,141 @@
+# Healix Backend
+
+This backend is a Django + DRF API that powers authentication, health telemetry (vitals), emergency alerts, and an AI assistant service. It uses a SQLite database by default and integrates with Google Gemini for assistant responses.
+
+## Structure
+
+backend/
+README.md
+healix_server/
+manage.py
+db.sqlite3
+requirements.txt
+healix_server/
+settings.py
+urls.py
+views.py
+models.py
+serializers.py
+auth.py
+wsgi.py
+asgi.py
+assistant/
+urls.py
+views.py
+models.py
+gemini_client.py
+rag.py
+tools.py
+static/
+templates/
+
+## Core Apps
+
+### healix_server (core)
+
+- Auth endpoints, user profile, vitals ingest, vitals retrieval, and emergency alerts.
+- Main entry points:
+  - settings: healix_server/settings.py
+  - routes: healix_server/urls.py
+  - controllers: healix_server/views.py
+  - models: healix_server/models.py
+  - serializers: healix_server/serializers.py
+  - auth: healix_server/auth.py (Bearer and Token auth)
+
+### assistant
+
+- AI chat service with conversation storage and health insights.
+- Main entry points:
+  - routes: assistant/urls.py
+  - controllers: assistant/views.py
+  - models: assistant/models.py
+  - Gemini client: assistant/gemini_client.py
+  - Health context builder: assistant/rag.py
+  - Alert helper: assistant/tools.py
+
+## How It Works (Request Flow)
+
+1. Django receives requests via healix_server/urls.py.
+2. Requests are routed to either core views or assistant views.
+3. DRF authentication (Bearer or Token) is applied on protected endpoints.
+4. Views validate and serialize data, then read/write to models.
+5. AI assistant endpoints call Gemini with optional health context and store messages.
+6. Emergency alert endpoints send email to contacts via SMTP.
+
+## Key Endpoints
+
+Auth
+
+- POST /api/auth/register/
+- POST /api/auth/login/
+- POST /api/auth/logout/ (auth)
+- GET /api/auth/profile/ (auth)
+- PUT/PATCH /api/auth/profile/update/ (auth)
+- GET /api/auth/users/ (auth, staff)
+
+Vitals
+
+- POST /api/vitals/push/ (auth) -> save new VitalSigns
+- GET /api/vitals/pull/ -> return latest VitalSigns
+
+Emergency
+
+- GET/POST /api/emergency/contacts/ (auth)
+- POST /api/emergency/send/ (auth)
+
+AI Assistant
+
+- POST /api/assistant/chat/ (auth)
+- GET /api/assistant/conversations/ (auth)
+- GET /api/assistant/conversations/{id}/ (auth)
+- POST /api/assistant/summary/ (auth)
+- GET /api/assistant/insights/ (auth)
+- POST /api/assistant/insights/{id}/read/ (auth)
+- POST /api/assistant/send-alert/ (auth)
+
+## Data Models (Summary)
+
+Core models (healix_server/models.py)
+
+- VitalSigns
+- PhysicalData
+- FitnessData
+- Nutrition
+- ReproductiveHealth
+- Sleep
+- EmergencyContact
+
+Assistant models (assistant/models.py)
+
+- Conversation
+- Message
+- HealthInsight
+
+## Environment Variables
+
+Set these in your environment (or a .env loaded by your process manager):
+
+- GEMINI_API_KEY: Google Gemini API key used by assistant/gemini_client.py
+- EMAIL_HOST_USER: SMTP user for emergency alert emails
+- EMAIL_HOST_PASSWORD: SMTP password or app password
+
+Frontend expects:
+
+- VITE_API_BASE_URL (pointing to /api/)
+
+## Local Setup
+
+1. Create and activate a Python virtual environment
+2. Install dependencies:
+   pip install -r backend/healix_server/requirements.txt
+3. Run migrations:
+   python backend/healix_server/manage.py migrate
+4. Start server:
+   python backend/healix_server/manage.py runserver
+
+## Notes and Current Behavior
+
+- CORS is open in development (CORS_ALLOW_ALL_ORIGINS = True).
+- vitals_pull is public by default; vitals_push requires auth.
+- Emergency contacts are not currently scoped per user.
+- assistant/serializers.py contains legacy commented code and is not used by current views.
