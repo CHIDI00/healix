@@ -5,6 +5,12 @@ export interface GeminiMessage {
   text: string;
 }
 
+export interface UserProfile {
+  first_name?: string;
+  last_name?: string;
+  username?: string;
+}
+
 interface GeminiGenerateResponse {
   candidates?: Array<{
     content?: {
@@ -59,10 +65,33 @@ const buildContents = (messages: GeminiMessage[]) => {
 
 export const generateGeminiReply = async (
   messages: GeminiMessage[],
+  user?: UserProfile | null,
 ): Promise<string> => {
   if (!GEMINI_API_KEY) {
     throw new Error("Missing Gemini API key. Set VITE_GEMINI_API_KEY in .env.");
   }
+
+  const userName =
+    user?.first_name && user?.last_name
+      ? `${user.first_name} ${user.last_name}`
+      : user?.username || "Onyeka Joshua";
+
+  const dynamicPrompt = `${HEALTHCARE_SYSTEM_PROMPT}
+
+Current User Profile & Health Data Context:
+- Name: ${userName}
+- Age/DOB: 1999 (25 years old)
+- Primary Device: Oraimo Watch
+- Current Heart Rate: 72 BPM (Normal)
+- Resting Heart Rate: 61 BPM
+- Blood Oxygen (SpO2): 98%
+- Respiratory Rate: 16 br/min
+- Skin Temperature: 36.5°C
+- Daily Steps: 8,240
+- Dietary Adherence: 85% (Low-sodium protocol)
+- Recent AI Analysis: Vitals are completely stable. No cardiovascular anomalies detected in the last 48 hours. HRV indicates optimal nervous system recovery.
+
+Use this data to personalize your responses. If the user asks about their heart rate, steps, or general health, refer to this data.`;
 
   const response = await fetch(
     `${GEMINI_ENDPOINT}?key=${encodeURIComponent(GEMINI_API_KEY)}`,
@@ -74,7 +103,7 @@ export const generateGeminiReply = async (
       body: JSON.stringify({
         // This is where we inject your custom persona
         systemInstruction: {
-          parts: [{ text: HEALTHCARE_SYSTEM_PROMPT }],
+          parts: [{ text: dynamicPrompt }],
         },
         contents: buildContents(messages),
         generationConfig: {

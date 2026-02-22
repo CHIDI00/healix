@@ -1,5 +1,9 @@
 import { useCallback, useState } from "react";
-import { generateGeminiReply, type GeminiMessage } from "@/services/geminiApi";
+import {
+  generateGeminiReply,
+  type GeminiMessage,
+  type UserProfile,
+} from "@/services/geminiApi";
 
 interface UseGeminiConversationState {
   messages: GeminiMessage[];
@@ -8,7 +12,7 @@ interface UseGeminiConversationState {
   error: string | null;
 }
 
-export const useGeminiConversation = () => {
+export const useGeminiConversation = (user?: UserProfile | null) => {
   const [state, setState] = useState<UseGeminiConversationState>({
     messages: [],
     isLoading: false,
@@ -36,7 +40,7 @@ export const useGeminiConversation = () => {
       }));
 
       try {
-        const aiReply = await generateGeminiReply(updatedMessages);
+        const aiReply = await generateGeminiReply(updatedMessages, user);
 
         setState((prev) => ({
           ...prev,

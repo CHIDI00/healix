@@ -540,7 +540,7 @@ const Dashboard = ({ onLogout }: DashboardProps) => {
 
       {/* Modals */}
       <>
-        <AIChatModal open={chatOpen} onOpenChange={setChatOpen} />
+        <AIChatModal open={chatOpen} onOpenChange={setChatOpen} user={user} />
         <VitalsModal open={vitalsOpen} onOpenChange={setVitalsOpen} />
         <DietitianModal open={dietOpen} onOpenChange={setDietOpen} />
         <PhysicalHealthModal open={healthOpen} onOpenChange={setHealthOpen} />

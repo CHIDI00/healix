@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Send, History, Trash2, AlertCircle } from "lucide-react";
 import { motion } from "framer-motion";
 import { useGeminiConversation } from "@/hooks/useGeminiConversation";
+import { type UserProfile } from "@/services/geminiApi";
 
 interface SavedChat {
   messages: Array<{ role: "user" | "ai"; text: string }>;
@@ -19,9 +20,10 @@ interface SavedChat {
 interface AIChatModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  user?: UserProfile | null;
 }
 
-const AIChatModal = ({ open, onOpenChange }: AIChatModalProps) => {
+const AIChatModal = ({ open, onOpenChange, user }: AIChatModalProps) => {
   const {
     messages,
     isLoading,
@@ -31,7 +33,7 @@ const AIChatModal = ({ open, onOpenChange }: AIChatModalProps) => {
     startNewConversation,
     clearConversation,
     loadConversation,
-  } = useGeminiConversation();
+  } = useGeminiConversation(user);
 
   const [input, setInput] = useState("");
   const [showHistory, setShowHistory] = useState(false);
