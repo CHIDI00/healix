@@ -74,8 +74,7 @@ const tools = [
           properties: {
             reason: {
               type: "STRING",
-              description:
-                "The medical reason for the alert (e.g., 'Heart rate dropped to 40 bpm')",
+              description: "The medical reason for the alert (e.g., 'Heart rate dropped to 40 bpm')",
             },
             urgencyLevel: {
               type: "STRING",
@@ -96,18 +95,12 @@ const buildContents = (messages: GeminiMessage[]) => {
   }));
 };
 
-export const generateGeminiReply = async (
-  messages: GeminiMessage[],
-  user?: UserProfile | null,
-): Promise<string> => {
+export const generateGeminiReply = async (messages: GeminiMessage[], user?: UserProfile | null): Promise<string> => {
   if (!GEMINI_API_KEY) {
     throw new Error("Missing Gemini API key. Set VITE_GEMINI_API_KEY in .env.");
   }
 
-  const userName =
-    user?.first_name && user?.last_name
-      ? `${user.first_name} ${user.last_name}`
-      : user?.username || "Onyeka Joshua";
+  const userName = user?.first_name && user?.last_name ? `${user.first_name} ${user.last_name}` : user?.username || "Onyeka Joshua";
 
   const dynamicPrompt = `${HEALTHCARE_SYSTEM_PROMPT}
 
@@ -126,33 +119,28 @@ Current User Profile & Health Data Context:
 
 Use this data to personalize your responses. If the user asks about their heart rate, steps, or general health, refer to this data.`;
 
-  const response = await fetch(
-    `${GEMINI_ENDPOINT}?key=${encodeURIComponent(GEMINI_API_KEY)}`,
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        systemInstruction: {
-          parts: [{ text: dynamicPrompt }],
-        },
-        contents: buildContents(messages),
-        tools: tools,
-        generationConfig: {
-          temperature: 0.7,
-          maxOutputTokens: 700,
-        },
-      }),
+  const response = await fetch(`${GEMINI_ENDPOINT}?key=${encodeURIComponent(GEMINI_API_KEY)}`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
     },
-  );
+    body: JSON.stringify({
+      systemInstruction: {
+        parts: [{ text: dynamicPrompt }],
+      },
+      contents: buildContents(messages),
+      tools: tools,
+      generationConfig: {
+        temperature: 0.7,
+        maxOutputTokens: 700,
+      },
+    }),
+  });
 
   const data: GeminiGenerateResponse = await response.json();
 
   if (!response.ok) {
-    throw new Error(
-      data.error?.message || `Gemini request failed (HTTP ${response.status})`,
-    );
+    throw new Error(data.error?.message || `Gemini request failed (HTTP ${response.status})`);
   }
 
   const firstPart = data.candidates?.[0]?.content?.parts?.[0];
@@ -163,10 +151,10 @@ Use this data to personalize your responses. If the user asks about their heart 
     if (call.name === "alert_caregiver") {
       const { reason, urgencyLevel } = call.args;
 
-      console.log(`🚨 API TOOL TRIGGERED: ${urgencyLevel} - ${reason}`);
+      console.log(`  API TOOL TRIGGERED: ${urgencyLevel} - ${reason}`);
 
       // Short circuit the chat and return the emergency UI text directly
-      return `🚨 **EMERGENCY ALERT SENT** 🚨\n\nI detected a critical situation and have immediately notified your emergency contacts and caregiver. \n\n**Reason:** ${reason}. \n\nPlease stay calm and sit down. Help is on the way.`;
+      return `  **EMERGENCY ALERT SENT**  \n\nI detected a critical situation and have immediately notified your emergency contacts and caregiver. \n\n**Reason:** ${reason}. \n\nPlease stay calm and sit down. Help is on the way.`;
     }
   }
 
