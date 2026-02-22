@@ -291,7 +291,7 @@ class OraimoWatchService:
                 exit()
             except Exception as e:
                 logger.error(f"Service error: {e}")
-                time.sleep(60)
+                time.sleep(5)
         
         self.disconnect()
         logger.info(f"Service stopped (synced {sync_count} readings)")
