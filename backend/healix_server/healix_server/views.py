@@ -87,7 +87,7 @@ def vitals_push(request):
 
 
 @api_view(['GET'])
-def vitals_pull(request, pk):
+def vitals_pull(request):
     vital = VitalSigns.objects.last()
     return Response(VitalSignsSerializer(vital).data)
 
