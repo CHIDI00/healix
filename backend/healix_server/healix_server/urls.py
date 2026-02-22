@@ -36,4 +36,8 @@ urlpatterns = [
     # Vital Signs Endpoints
     path('api/vitals/push/', views.vitals_push),
     path('api/vitals/pull/', views.vitals_pull),
+    
+    # EMERGENCY ENDPOINTS
+    path('api/emergency/contacts/', views.emergency_contacts, name='emergency-contacts'),
+    path('api/emergency/send/', views.send_emergency_alert, name='send-emergency'),
 ]

@@ -149,10 +149,10 @@ class OraimoWatchService:
             heart_rate = int(self.baseline_hr * time_factor + random.randint(-5, 5))
             heart_rate = max(45, min(180, heart_rate))
             
-            systolic = int(self.baseline_sys + (heart_rate - self.baseline_hr) * 0.5 + random.randint(-3, 3))
+            systolic = int(self.baseline_sys + (heart_rate - self.baseline_hr) * 0.25 + random.randint(-2, 2))
             systolic = max(90, min(160, systolic))
             
-            diastolic = int(self.baseline_dia + (heart_rate - self.baseline_hr) * 0.3 + random.randint(-2, 2))
+            diastolic = int(self.baseline_dia + (heart_rate - self.baseline_hr) * 0.15 + random.randint(-1, 1))
             diastolic = max(60, min(100, diastolic))
             
             temperature = round(self.baseline_temp + random.uniform(-0.3, 0.3), 1)

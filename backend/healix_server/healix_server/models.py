@@ -405,3 +405,12 @@ class Sleep(models.Model):
     
     def __str__(self):
         return f"{self.user.username} - Sleep ({self.timestamp})"
+
+
+class EmergencyContact(models.Model):
+    """Emergency contact information for users"""
+    name = models.CharField(max_length=100)
+    email = models.EmailField()
+    
+    def __str__(self):
+        return self.name
