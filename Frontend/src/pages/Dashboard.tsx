@@ -5,6 +5,9 @@ import AIChatModal from "@/components/models/AIChatModal";
 import VitalsModal from "@/components/models/VitalsModal";
 import Orb from "@/components/ui/OrbAnimation";
 import DietitianModal from "@/components/models/DiatitionModal";
+import PhysicalHealthModal from "@/components/models/PhysicalhealthModal";
+import HealthSummaryModal from "@/components/models/HealthSummaryModal";
+import EmergencyConnectionsModal from "@/components/models/EmmergencyConnectionsModal";
 
 const quickCards = [
   {
@@ -199,6 +202,9 @@ const Dashboard = ({ onLogout }: DashboardProps) => {
         <AIChatModal open={chatOpen} onOpenChange={setChatOpen} />
         <VitalsModal open={vitalsOpen} onOpenChange={setVitalsOpen} />
         <DietitianModal open={dietOpen} onOpenChange={setDietOpen} />
+        <PhysicalHealthModal open={healthOpen} onOpenChange={setHealthOpen} />
+        <HealthSummaryModal open={summaryOpen} onOpenChange={setSummaryOpen} />
+        <EmergencyConnectionsModal open={emergencyOpen} onOpenChange={setEmergencyOpen} />
       </>
     </motion.div>
   );
