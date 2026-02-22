@@ -1,129 +1,220 @@
-import { useState } from "react";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { useState, useEffect } from "react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
-import { Plus, X, Phone, Mail, AlertTriangle } from "lucide-react";
+import { Plus, X, Phone, Mail, AlertTriangle, Loader2, BellRing, CheckCircle2 } from "lucide-react";
 
 interface EmergencyConnectionsModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
 
-const initialContacts = [
-  {
-    id: "1",
-    name: "Dr. Chinedu Okafor",
-    email: "chinedu.okafor@hospital.ng",
-    role: "Primary Physician",
-  },
-  {
-    id: "2",
-    name: "Adaeze Joshua",
-    email: "adaeze.joshua@gmail.com",
-    role: "Emergency Contact",
-  },
-];
+interface Contact {
+  id: string | number;
+  name: string;
+  email: string;
+  role?: string;
+}
 
-const EmergencyConnectionsModal = ({
-  open,
-  onOpenChange,
-}: EmergencyConnectionsModalProps) => {
-  const [contacts, setContacts] = useState(initialContacts);
+const EmergencyConnectionsModal = ({ open, onOpenChange }: EmergencyConnectionsModalProps) => {
+  const [contacts, setContacts] = useState<Contact[]>(() => {
+    const savedContacts = localStorage.getItem("healix_emergency_contacts");
+    if (savedContacts) {
+      try {
+        return JSON.parse(savedContacts);
+      } catch (e) {
+        return [];
+      }
+    }
+    return [];
+  });
+
   const [newEmail, setNewEmail] = useState("");
   const [newName, setNewName] = useState("");
 
-  const addContact = () => {
+  const [isAdding, setIsAdding] = useState(false);
+  const [isAlerting, setIsAlerting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [successMsg, setSuccessMsg] = useState<string | null>(null);
+
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
+  useEffect(() => {
+    localStorage.setItem("healix_emergency_contacts", JSON.stringify(contacts));
+  }, [contacts]);
+
+  useEffect(() => {
+    if (!open) {
+      setError(null);
+      setSuccessMsg(null);
+    }
+  }, [open]);
+
+  const addContact = async () => {
     if (!newEmail.trim() || !newName.trim()) return;
-    setContacts((prev) => [
-      ...prev,
-      {
-        id: Date.now().toString(),
-        name: newName.trim(),
-        email: newEmail.trim(),
-        role: "Care Team",
-      },
-    ]);
-    setNewEmail("");
-    setNewName("");
+
+    setIsAdding(true);
+    setError(null);
+    setSuccessMsg(null);
+
+    try {
+      const token = localStorage.getItem("healix_token");
+      const response = await fetch(`${API_BASE_URL}emergency/contacts/`, {
+        method: "POST",
+        headers: {
+          Authorization: `Token ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: newName.trim(),
+          email: newEmail.trim(),
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to add contact to the server.");
+      }
+
+      setContacts((prev) => [
+        ...prev,
+        {
+          id: Date.now().toString(),
+          name: newName.trim(),
+          email: newEmail.trim(),
+          role: "Emergency Contact",
+        },
+      ]);
+
+      setNewEmail("");
+      setNewName("");
+      setSuccessMsg("Contact added successfully.");
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "An error occurred");
+    } finally {
+      setIsAdding(false);
+    }
   };
 
-  const removeContact = (id: string) => {
+  const removeContact = (id: string | number) => {
     setContacts((prev) => prev.filter((c) => c.id !== id));
+  };
+
+  const triggerEmergencyAlert = async () => {
+    setIsAlerting(true);
+    setError(null);
+    setSuccessMsg(null);
+
+    try {
+      const userStr = localStorage.getItem("healix_user");
+      const user = userStr ? JSON.parse(userStr) : { username: "Patient", email: "patient@healix.app" };
+      const token = localStorage.getItem("healix_token");
+
+      const formData = new URLSearchParams();
+      formData.append("name", user.username || "Patient");
+      formData.append("email", user.email || "patient@healix.app");
+      formData.append("reason", "Critical vitals anomaly detected (Simulated via Hackathon Demo)");
+      formData.append("urgency_level", "Critical");
+
+      const response = await fetch(`${API_BASE_URL}emergency/send/`, {
+        method: "POST",
+        headers: {
+          Authorization: `Token ${token}`,
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body: formData.toString(),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to dispatch emergency alerts.");
+      }
+
+      const data = await response.json();
+      setSuccessMsg(data.message || "Emergency alert dispatched to your Care Team.");
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "An error occurred");
+    } finally {
+      setIsAlerting(false);
+    }
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg border-slate-200 bg-[#FAFAFA] overflow-y-auto h-[36rem] sm:max-w-2xl">
+      <DialogContent className="max-w-lg border-slate-200 bg-[#FAFAFA] overflow-y-auto h-[38rem] sm:max-w-2xl">
         <DialogHeader>
-          <DialogTitle className="text-xl font-semibold text-slate-800">
-            Emergency Connections
-          </DialogTitle>
+          <DialogTitle className="text-xl font-semibold text-slate-800">Emergency Connections</DialogTitle>
         </DialogHeader>
 
         {/* Alert Info */}
         <div className="flex items-start gap-3 rounded-xl border border-red-100 bg-red-50/50 p-4">
           <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-red-500" />
           <p className="text-xs text-slate-600">
-            These contacts will be auto-notified during critical health events.
-            Ensure all details are accurate.
+            These contacts will be auto-notified during critical health events. Ensure all details are accurate.
           </p>
         </div>
 
+        {/* Status Messages */}
+        {error && (
+          <div className="flex items-center gap-2 rounded-xl border border-rose-100 bg-rose-50 p-3 text-xs text-rose-600">
+            <AlertTriangle className="h-4 w-4 shrink-0" /> {error}
+          </div>
+        )}
+        {successMsg && (
+          <div className="flex items-center gap-2 rounded-xl border border-emerald-100 bg-emerald-50 p-3 text-xs text-emerald-600">
+            <CheckCircle2 className="h-4 w-4 shrink-0" /> {successMsg}
+          </div>
+        )}
+
         {/* Contact List */}
-        <div className="space-y-2">
-          <AnimatePresence>
-            {contacts.map((contact) => (
-              <motion.div
-                key={contact.id}
-                layout
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, x: -20, height: 0 }}
-                className="flex items-center justify-between rounded-xl border border-slate-100 bg-white p-4 shadow-sm"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-full bg-indigo-50">
-                    <Phone className="h-4 w-4 text-indigo-500" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-slate-700">
-                      {contact.name}
-                    </p>
-                    <div className="flex items-center gap-1.5">
-                      <Mail className="h-3 w-3 text-slate-400" />
-                      <p className="text-xs text-slate-400">{contact.email}</p>
-                    </div>
-                    <span className="text-[10px] font-medium text-indigo-500">
-                      {contact.role}
-                    </span>
-                  </div>
-                </div>
-                <button
-                  onClick={() => removeContact(contact.id)}
-                  className="rounded-full p-1.5 text-slate-300 transition hover:bg-red-50 hover:text-red-500"
+        <div className="space-y-2 min-h-[120px] max-h-[240px] overflow-y-auto pr-1 custom-scrollbar">
+          {contacts.length === 0 ? (
+            <div className="flex h-32 items-center justify-center rounded-xl border border-dashed border-slate-200 bg-white">
+              <span className="text-sm text-slate-400">No emergency contacts configured.</span>
+            </div>
+          ) : (
+            <AnimatePresence>
+              {contacts.map((contact) => (
+                <motion.div
+                  key={contact.id}
+                  layout
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, x: -20, height: 0 }}
+                  className="flex items-center justify-between rounded-xl border border-slate-100 bg-white p-4 shadow-sm"
                 >
-                  <X className="h-4 w-4" />
-                </button>
-              </motion.div>
-            ))}
-          </AnimatePresence>
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-9 w-9 items-center justify-center rounded-full bg-indigo-50">
+                      <Phone className="h-4 w-4 text-indigo-500" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-slate-700">{contact.name}</p>
+                      <div className="flex items-center gap-1.5">
+                        <Mail className="h-3 w-3 text-slate-400" />
+                        <p className="text-xs text-slate-400">{contact.email}</p>
+                      </div>
+                      <span className="text-[10px] font-medium text-indigo-500">{contact.role}</span>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => removeContact(contact.id)}
+                    className="rounded-full p-1.5 text-slate-300 transition hover:bg-red-50 hover:text-red-500"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </motion.div>
+              ))}
+            </AnimatePresence>
+          )}
         </div>
 
         {/* Add New Contact */}
         <div className="space-y-4 rounded-xl border border-dashed border-slate-200 bg-white p-4">
-          <p className="text-xs font-medium uppercase tracking-widest text-slate-400">
-            Add Contact
-          </p>
+          <p className="text-xs font-medium uppercase tracking-widest text-slate-400">Add Contact</p>
           <Input
             value={newName}
             onChange={(e) => setNewName(e.target.value)}
             placeholder="Full name"
+            disabled={isAdding}
             className="h-9 rounded-lg border-slate-200 bg-slate-50/50 text-sm"
           />
           <Input
@@ -131,21 +222,29 @@ const EmergencyConnectionsModal = ({
             onChange={(e) => setNewEmail(e.target.value)}
             placeholder="Email address"
             type="email"
+            disabled={isAdding}
             className="h-9 rounded-lg border-slate-200 bg-slate-50/50 text-sm"
           />
           <Button
             onClick={addContact}
-            disabled={!newEmail.trim() || !newName.trim()}
+            disabled={!newEmail.trim() || !newName.trim() || isAdding}
             className="w-full rounded-xl bg-indigo-600 text-sm hover:bg-indigo-700"
           >
-            <Plus className="mr-2 h-4 w-4" />
+            {isAdding ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Plus className="mr-2 h-4 w-4" />}
             Add to Emergency List
           </Button>
         </div>
 
-        <p className="text-center text-xs text-slate-400">
-          Auto-dispatch enabled for critical alerts
-        </p>
+        {/* Test Alert Button */}
+        <Button
+          onClick={triggerEmergencyAlert}
+          disabled={isAlerting || contacts.length === 0}
+          variant="outline"
+          className="mt-2 w-full rounded-xl border-rose-200 bg-rose-50 text-rose-600 hover:bg-rose-100 hover:text-rose-700 disabled:opacity-50"
+        >
+          {isAlerting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <BellRing className="mr-2 h-4 w-4" />}
+          Simulate Emergency Alert
+        </Button>
       </DialogContent>
     </Dialog>
   );
