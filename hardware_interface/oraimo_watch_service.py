@@ -201,7 +201,8 @@ class OraimoWatchService:
         
         # Prepare data for backend
         payload = {
-            'user': user_id,
+            "id": time.time_ns(),
+            'user': "eneji",
             'timestamp': watch_data['timestamp'],
             'heart_rate': watch_data['heart_rate'],
             'resting_heart_rate': watch_data['heart_rate'],
@@ -217,6 +218,7 @@ class OraimoWatchService:
         try:
             response = requests.post(
                 f"{api_url}",
+                Authorization=f"Bearer {token}",
                 headers=headers,
                 json=payload,
                 timeout=5
@@ -333,7 +335,7 @@ WantedBy=multi-user.target
 
 if __name__ == "__main__":
     import argparse
-    while not stable: OraimoWatchService("69:9B:B8:F3:80:5E").run("https://helix4.pythonanywhere.com/api/vitals/push/")
+    while not stable: OraimoWatchService("69:9B:B8:F3:80:5E").run("https://helix4.pythonanywhere.com/api/vitals/push/", token="4a7fa8a2a91dd54be14917f9024e02dbef3900ef")
         
     
     parser = argparse.ArgumentParser(description='Oraimo Watch Bluetooth Service')

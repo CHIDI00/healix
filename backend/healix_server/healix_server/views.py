@@ -73,6 +73,7 @@ def update_profile(request):
 
 
 @api_view(['POST'])
+@permission_classes([IsAuthenticated])
 def vitals_push(request):
     """
     List all vitals or create a new vital sign entry
@@ -82,7 +83,7 @@ def vitals_push(request):
         if serializer.is_valid():
             serializer.save(user=request.user)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    return Response(serializer.errors, status=status.HTTP_403_FORBIDDEN)
 
 
 @api_view(['GET'])
