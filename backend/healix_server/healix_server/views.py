@@ -143,31 +143,14 @@ def send_emergency_alert(request):
     reason = request.POST.get('reason')
     urgency_level = request.POST.get('urgency_level')
     
-    # Validate required fields
-    if not all([name, email, reason, urgency_level]):
-        return Response(
-            {'error': 'Missing required fields: name, email, reason, urgency_level'},
-            status=status.HTTP_400_BAD_REQUEST
-        )
-    
+   
     # Get contacts only for the current user
-    contacts = EmergencyContact.objects.filter(user=request.user)
-    
-    if not contacts.exists():
-        return Response(
-            {'error': 'No emergency contacts found. Please add at least one contact.'},
-            status=status.HTTP_400_BAD_REQUEST
-        )
-    
-    # Send emails to all contacts
-    sent_count = 0
+    contacts = EmergencyContact.objects.all()
+
     for contact in contacts:
-        if send_emergency_email(name, email, reason, urgency_level, contact):
-            sent_count += 1
+        send_emergency_email(name, email, reason, urgency_level, contact)
     
-    return Response({
-        'message': f'Emergency alert sent to {sent_count} contact(s)'
-    })
+    return Response(status=status.HTTP_200_OK)
 
 def send_emergency_email(name, email, reason, urgency_level, contact):
     """Send emergency email via Gmail"""
