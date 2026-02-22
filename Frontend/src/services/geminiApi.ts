@@ -14,13 +14,9 @@ interface GeminiGenerateResponse {
     content?: {
       parts?: Array<{
         text?: string;
-        // Added functionCall to the interface so TypeScript doesn't disturb
         functionCall?: {
           name: string;
-          args: {
-            reason: string;
-            urgencyLevel: string;
-          };
+          args: any;
         };
       }>;
     };
@@ -34,33 +30,24 @@ const GEMINI_API_KEY = (import.meta.env.VITE_GEMINI_API_KEY ?? "").trim();
 const GEMINI_MODEL = "gemini-2.5-flash";
 const GEMINI_ENDPOINT = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
 
-const HEALTHCARE_SYSTEM_PROMPT = `Your name is Helix,
-You are an expert healthcare professional and wellness coach with years of experience 
-in preventive medicine and personalized health guidance. Your role is to:
+// 1. UPDATED PROMPT: Bounded Health Assistant
+const HEALTHCARE_SYSTEM_PROMPT = `You are Helix, the official AI medical partner and health assistant for the Healix platform.
 
-1. Analyze user's health data and provide evidence-based recommendations
-2. Identify patterns and trends in their health metrics
-3. Offer actionable, personalized health insights
-4. Educate users about health and wellness concepts
-5. Provide compassionate and supportive guidance
-6. Suggest when professional medical consultation is needed
-7. Consider the user's complete health picture when answering questions
+### DOMAIN RESTRICTION (CRITICAL GUARDRAIL):
+- You are STRICTLY a health, medical, and wellness assistant. 
+- If the user asks about ANY topic outside of health, medicine, wellness, diet, fitness, or their vitals (e.g., coding, politics, math, general knowledge), you MUST politely refuse to answer and remind them that you are only here to assist with their health.
 
-Important Guidelines:
-- Always be empathetic and supportive
-- Base recommendations on the user's actual health data when available
-- Distinguish between general wellness advice and medical concerns
-- Recommend consulting healthcare professionals for serious concerns
-- Ask clarifying questions if needed to provide better guidance
-- Consider contraindications and individual health conditions
-- Provide specific, actionable recommendations when possible
+### COMMUNICATION RULES:
+- Be clear, direct, and highly professional. Avoid conversational filler.
+- Use bullet points when listing data, symptoms, or recommendations to keep the UI readable.
+- When answering general health questions, provide thorough but concise explanations.
+- Adopt a calm, clinical tone like an expert doctor or wellness coach.
 
-When analyzing health data:
-- Look for patterns and trends
-- Compare values to normal ranges
-- Consider the context of the user's activities and lifestyle
-- Identify potential areas for improvement
-- Celebrate positive health habits`;
+### YOUR CAPABILITIES:
+1. Answer general health, wellness, fitness, and medical questions accurately.
+2. Analyze the user's live health data (provided below) when they ask about their current status.
+3. If the user asks you to send, share, or email their data to someone, use the send_vitals_report tool.
+4. If the user reports severe symptoms (e.g., chest pain, difficulty breathing), OR if their vitals drop to dangerous levels, STOP chatting and immediately trigger the alert_caregiver tool.`;
 
 const tools = [
   {
@@ -74,7 +61,8 @@ const tools = [
           properties: {
             reason: {
               type: "STRING",
-              description: "The medical reason for the alert (e.g., 'Heart rate dropped to 40 bpm')",
+              description:
+                "The medical reason for the alert (e.g., 'Heart rate dropped to 40 bpm' or 'User reported severe chest pain')",
             },
             urgencyLevel: {
               type: "STRING",
@@ -84,10 +72,27 @@ const tools = [
           required: ["reason", "urgencyLevel"],
         },
       },
+      {
+        name: "send_vitals_report",
+        description:
+          "Send the user's current vitals data to their caregiver, doctor, or family member when the user explicitly asks to share or send their data.",
+        parameters: {
+          type: "OBJECT",
+          properties: {
+            recipient_type: {
+              type: "STRING",
+              description:
+                "Who to send the report to (e.g., 'doctor', 'caregiver', 'family')",
+            },
+          },
+          required: ["recipient_type"],
+        },
+      },
     ],
   },
 ];
 
+// FIXED: This now strictly takes 1 argument and maps the messages correctly
 const buildContents = (messages: GeminiMessage[]) => {
   return messages.map((message) => ({
     role: message.role === "ai" ? "model" : "user",
@@ -95,70 +100,154 @@ const buildContents = (messages: GeminiMessage[]) => {
   }));
 };
 
-export const generateGeminiReply = async (messages: GeminiMessage[], user?: UserProfile | null): Promise<string> => {
+interface LiveVitals {
+  heart_rate?: number;
+  blood_pressure_systolic?: number;
+  blood_pressure_diastolic?: number;
+  oxygen_saturation?: number;
+  respiratory_rate?: number;
+  body_temperature?: number;
+  timestamp?: string;
+  [key: string]: string | number | boolean | null | undefined;
+}
+
+const fetchLiveVitals = async (): Promise<LiveVitals | null> => {
+  try {
+    const token = localStorage.getItem("healix_token");
+    const response = await fetch(
+      `${import.meta.env.VITE_API_BASE_URL}vitals/pull/`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Token ${token}` } : {}),
+        },
+      },
+    );
+
+    if (!response.ok) {
+      return null;
+    }
+
+    const data = (await response.json()) as LiveVitals;
+    return data;
+  } catch {
+    return null;
+  }
+};
+
+export const generateGeminiReply = async (
+  messages: GeminiMessage[],
+  user?: UserProfile | null,
+): Promise<string> => {
   if (!GEMINI_API_KEY) {
     throw new Error("Missing Gemini API key. Set VITE_GEMINI_API_KEY in .env.");
   }
 
-  const userName = user?.first_name && user?.last_name ? `${user.first_name} ${user.last_name}` : user?.username || "Onyeka Joshua";
+  const userName =
+    user?.first_name && user?.last_name
+      ? `${user.first_name} ${user.last_name}`
+      : user?.username || "there";
 
-  const dynamicPrompt = `${HEALTHCARE_SYSTEM_PROMPT}
+  const liveVitals = await fetchLiveVitals();
 
-Current User Profile & Health Data Context:
-- Name: ${userName}
-- Age/DOB: 1999 (25 years old)
-- Primary Device: Oraimo Watch
-- Current Heart Rate: 72 BPM (Normal)
-- Resting Heart Rate: 61 BPM
-- Blood Oxygen (SpO2): 98%
-- Respiratory Rate: 16 br/min
-- Skin Temperature: 36.5°C
-- Daily Steps: 8,240
-- Dietary Adherence: 85% (Low-sodium protocol)
-- Recent AI Analysis: Vitals are completely stable. No cardiovascular anomalies detected in the last 48 hours. HRV indicates optimal nervous system recovery.
+  // FIXED: Tells the AI exactly what to do if the hardware is disconnected
+  const vitalsContext = liveVitals
+    ? `### LIVE SENSOR DATA:
+- Heart Rate: ${liveVitals.heart_rate ?? "N/A"} BPM
+- Blood Pressure: ${liveVitals.blood_pressure_systolic ?? "N/A"}/${liveVitals.blood_pressure_diastolic ?? "N/A"} mmHg
+- Blood Oxygen (SpO2): ${liveVitals.oxygen_saturation ?? "N/A"}%
+- Respiratory Rate: ${liveVitals.respiratory_rate ?? "N/A"} br/min
+- Body Temp: ${liveVitals.body_temperature ?? "N/A"}°C
+- Last Sync: ${liveVitals.timestamp ?? "Just now"}`
+    : "### LIVE SENSOR DATA:\nLive vitals are currently offline. You can still answer general health and wellness questions normally. Only mention that vitals are offline if the user specifically asks to check their current hardware data.";
 
-Use this data to personalize your responses. If the user asks about their heart rate, steps, or general health, refer to this data.`;
+  const dynamicPrompt = `${HEALTHCARE_SYSTEM_PROMPT}\n\nUSER PROFILE:\n- Name: ${userName}\n\n${vitalsContext}`;
 
-  const response = await fetch(`${GEMINI_ENDPOINT}?key=${encodeURIComponent(GEMINI_API_KEY)}`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
+  const response = await fetch(
+    `${GEMINI_ENDPOINT}?key=${encodeURIComponent(GEMINI_API_KEY)}`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        // FIXED: The system instruction is now injected into the correct property
+        systemInstruction: {
+          parts: [{ text: dynamicPrompt }],
+        },
+        contents: buildContents(messages),
+        tools: tools,
+        generationConfig: {
+          temperature: 0.6,
+          maxOutputTokens: 700,
+        },
+      }),
     },
-    body: JSON.stringify({
-      systemInstruction: {
-        parts: [{ text: dynamicPrompt }],
-      },
-      contents: buildContents(messages),
-      tools: tools,
-      generationConfig: {
-        temperature: 0.7,
-        maxOutputTokens: 700,
-      },
-    }),
-  });
+  );
 
   const data: GeminiGenerateResponse = await response.json();
 
   if (!response.ok) {
-    throw new Error(data.error?.message || `Gemini request failed (HTTP ${response.status})`);
+    console.error("Gemini API Error:", {
+      status: response.status,
+      error: data.error,
+    });
+    throw new Error(
+      data.error?.message || `Gemini request failed (HTTP ${response.status})`,
+    );
   }
 
   const firstPart = data.candidates?.[0]?.content?.parts?.[0];
 
   if (firstPart?.functionCall) {
     const call = firstPart.functionCall;
+    const token = localStorage.getItem("healix_token");
+    const headers = {
+      "Content-Type": "application/json",
+      ...(token ? { Authorization: `Token ${token}` } : {}),
+    };
 
     if (call.name === "alert_caregiver") {
       const { reason, urgencyLevel } = call.args;
+      console.log(`FIRING EMERGENCY REST API: ${urgencyLevel} - ${reason}`);
 
-      console.log(`  API TOOL TRIGGERED: ${urgencyLevel} - ${reason}`);
+      try {
+        await fetch(`${import.meta.env.VITE_API_BASE_URL}emergency/trigger/`, {
+          method: "POST",
+          headers,
+          body: JSON.stringify({
+            reason,
+            urgency_level: urgencyLevel,
+          }),
+        });
+      } catch (err) {
+        console.error("Failed to route emergency alert", err);
+      }
 
-      // Short circuit the chat and return the emergency UI text directly
-      return `  **EMERGENCY ALERT SENT**  \n\nI detected a critical situation and have immediately notified your emergency contacts and caregiver. \n\n**Reason:** ${reason}. \n\nPlease stay calm and sit down. Help is on the way.`;
+      return `**EMERGENCY PROTOCOL ACTIVATED** \n\nI have transmitted an immediate SOS to your emergency contacts via SMS. \n\n**Detected:** ${reason}. \n\nPlease sit down and wait for help.`;
+    }
+
+    if (call.name === "send_vitals_report") {
+      const { recipient_type } = call.args;
+      console.log(`FIRING DATA SHARE REST API TO: ${recipient_type}`);
+
+      try {
+        await fetch(`${import.meta.env.VITE_API_BASE_URL}vitals/share/`, {
+          method: "POST",
+          headers,
+          body: JSON.stringify({
+            recipient_type: recipient_type,
+          }),
+        });
+      } catch (err) {
+        console.error("Failed to share vitals report", err);
+      }
+
+      return `**REPORT SHARED**\n\nI have successfully sent your real-time vitals to your ${recipient_type}.`;
     }
   }
 
-  // If no emergency, just return the standard text reply
   const text = firstPart?.text?.trim();
 
   if (!text) {

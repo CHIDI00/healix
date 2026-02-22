@@ -1,4 +1,107 @@
-import { useCallback, useState } from "react";
+// import { useCallback, useState } from "react";
+// import {
+//   generateGeminiReply,
+//   type GeminiMessage,
+//   type UserProfile,
+// } from "@/services/geminiApi";
+
+// interface UseGeminiConversationState {
+//   messages: GeminiMessage[];
+//   isLoading: boolean;
+//   isAiTyping: boolean;
+//   error: string | null;
+// }
+
+// export const useGeminiConversation = (user?: UserProfile | null) => {
+//   const [state, setState] = useState<UseGeminiConversationState>({
+//     messages: [],
+//     isLoading: false,
+//     isAiTyping: false,
+//     error: null,
+//   });
+
+//   const sendMessage = useCallback(
+//     async (text: string) => {
+//       const trimmed = text.trim();
+//       if (!trimmed) {
+//         return;
+//       }
+
+//       const userMessage: GeminiMessage = { role: "user", text: trimmed };
+
+//       // We capture the exact array we want to send to the API right here
+//       // to avoid React state closure bugs.
+//       let payloadMessages: GeminiMessage[] = [];
+
+//       setState((prev) => {
+//         payloadMessages = [...prev.messages, userMessage];
+//         return {
+//           ...prev,
+//           error: null,
+//           isLoading: true,
+//           isAiTyping: true,
+//           messages: payloadMessages,
+//         };
+//       });
+
+//       try {
+//         const aiReply = await generateGeminiReply(payloadMessages, user);
+
+//         setState((prev) => ({
+//           ...prev,
+//           messages: [...prev.messages, { role: "ai", text: aiReply }],
+//           isLoading: false,
+//           isAiTyping: false,
+//         }));
+//       } catch (error) {
+//         const message =
+//           error instanceof Error ? error.message : "Failed to get AI response";
+
+//         setState((prev) => ({
+//           ...prev,
+//           error: message,
+//           isLoading: false,
+//           isAiTyping: false,
+//           messages: prev.messages.slice(0, -1),
+//         }));
+//       }
+//     },
+//     [user],
+//   );
+
+//   const clearConversation = useCallback(() => {
+//     setState({
+//       messages: [],
+//       isLoading: false,
+//       isAiTyping: false,
+//       error: null,
+//     });
+//   }, []);
+
+//   const loadConversation = useCallback((messages: GeminiMessage[]) => {
+//     setState({
+//       messages,
+//       isLoading: false,
+//       isAiTyping: false,
+//       error: null,
+//     });
+//   }, []);
+
+//   const startNewConversation = useCallback(() => {
+//     clearConversation();
+//   }, [clearConversation]);
+
+//   return {
+//     ...state,
+//     sendMessage,
+//     clearConversation,
+//     loadConversation,
+//     startNewConversation,
+//   };
+// };
+
+
+import { useCallback, useState, useRef, useEffect } from "react";
 import {
   generateGeminiReply,
   type GeminiMessage,
@@ -20,6 +123,14 @@ export const useGeminiConversation = (user?: UserProfile | null) => {
     error: null,
   });
 
+  // We use a ref to ALWAYS have the absolute latest messages immediately, 
+  // bypassing React's state delay so we never send an empty array to Gemini.
+  const messagesRef = useRef<GeminiMessage[]>(state.messages);
+
+  useEffect(() => {
+    messagesRef.current = state.messages;
+  }, [state.messages]);
+
   const sendMessage = useCallback(
     async (text: string) => {
       const trimmed = text.trim();
@@ -28,23 +139,21 @@ export const useGeminiConversation = (user?: UserProfile | null) => {
       }
 
       const userMessage: GeminiMessage = { role: "user", text: trimmed };
+      
+      // 1. Calculate the exact payload IMMEDIATELY
+      const payloadMessages = [...messagesRef.current, userMessage];
 
-      // We capture the exact array we want to send to the API right here
-      // to avoid React state closure bugs.
-      let payloadMessages: GeminiMessage[] = [];
-
-      setState((prev) => {
-        payloadMessages = [...prev.messages, userMessage];
-        return {
-          ...prev,
-          error: null,
-          isLoading: true,
-          isAiTyping: true,
-          messages: payloadMessages,
-        };
-      });
+      // 2. Update the UI to show the user's message and loading state
+      setState((prev) => ({
+        ...prev,
+        error: null,
+        isLoading: true,
+        isAiTyping: true,
+        messages: payloadMessages,
+      }));
 
       try {
+        // 3. Send the immediately calculated payload to the API
         const aiReply = await generateGeminiReply(payloadMessages, user);
 
         setState((prev) => ({
@@ -56,17 +165,18 @@ export const useGeminiConversation = (user?: UserProfile | null) => {
       } catch (error) {
         const message =
           error instanceof Error ? error.message : "Failed to get AI response";
-
+          
         setState((prev) => ({
           ...prev,
           error: message,
           isLoading: false,
           isAiTyping: false,
+          // If it fails, remove the user's message so it doesn't get stuck
           messages: prev.messages.slice(0, -1),
         }));
       }
     },
-    [user],
+    [user], 
   );
 
   const clearConversation = useCallback(() => {
