@@ -3,6 +3,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Brain, FileText, Heart, Phone, Settings, Sparkles, Utensils, LogOut } from "lucide-react";
 import AIChatModal from "@/components/models/AIChatModal";
 import VitalsModal from "@/components/models/VitalsModal";
+import Orb from "@/components/ui/OrbAnimation";
 import DietitianModal from "@/components/models/DiatitionModal";
 
 const quickCards = [
@@ -135,7 +136,7 @@ const Dashboard = ({ onLogout }: DashboardProps) => {
       <div className=" flex flex-1 items-center justify-center">
         <motion.button
           onClick={() => setChatOpen(true)}
-          className="relative group flex h-56 w-56 p-0 flex-col items-center justify-center rounded-full border border-indigo-100 bg-white"
+          className="relative group flex h-56 w-56 flex-col items-center justify-center rounded-full "
           style={{
             boxShadow: spikeActive ? "0 0 60px rgba(239,68,68,0.4)" : "0 0 60px rgba(99,102,241,0.2)",
           }}
@@ -153,6 +154,10 @@ const Dashboard = ({ onLogout }: DashboardProps) => {
           <Sparkles className={`mb-2 h-10 w-10 transition ${spikeActive ? "text-red-500" : "text-indigo-500"}`} />
           <span className="text-xs font-medium text-slate-500">Tap to talk to</span>
           <span className={`text-sm font-semibold ${spikeActive ? "text-red-600" : "text-indigo-600"}`}>Helix</span>
+
+          <div className="w-full h-full absolute inset-0 flex items-center justify-center overflow-hidden rounded-full">
+            <Orb hoverIntensity={0.2} rotateOnHover hue={0} forceHoverState={false} backgroundColor="#000000" />
+          </div>
         </motion.button>
       </div>
 
