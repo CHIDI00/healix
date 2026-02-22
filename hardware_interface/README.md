@@ -37,6 +37,7 @@ Run the service directly from the command line:
 python oraimo_watch_service.py --api-url "http://localhost:8000/api/vitals/push/" --token "your-auth-token" --user-id 1
 ```
 
+![script runtime](image.png)
 ### Command Line Arguments
 
 | Argument | Description | Required | Default |

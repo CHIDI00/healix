@@ -9,4 +9,3 @@ admin.site.register(ReproductiveHealth)
 admin.site.register(Sleep)
 admin.site.register(EmergencyContact)
 
-# Register your models here.
