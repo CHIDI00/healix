@@ -159,3 +159,12 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'static'
+
+# Gmail SMTP Configuration
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'healixcareai@gmail.com'  # Your Gmail address
+EMAIL_HOST_PASSWORD = 'pffsvkhpjmsxvpbb'  # Gmail App Password (not regular password)
+DEFAULT_FROM_EMAIL = 'healixcareai@gmail.com'
