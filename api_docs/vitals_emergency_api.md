@@ -48,7 +48,30 @@ Retrieve the most recent vital signs recording.
 
 ## Emergency API
 
-### 1. Add Emergency Contact
+### 1. List Emergency Contacts
+Register a new contact to be notified in emergencies.
+
+- **URL:** `/api/emergency/contacts/`
+- **Method:** `GET`
+- **Authentication:** Public
+- **Request Body:**
+  ```json
+  {
+  }
+  ```
+- **Response:**
+  ```json
+  {
+    "contacts": [
+      {
+        "name": "Jane Doe",
+        "email": "jane@example.com"
+      }
+    ]
+  }
+  ```
+
+### 2. Add Emergency Contact
 Register a new contact to be notified in emergencies.
 
 - **URL:** `/api/emergency/contacts/`
@@ -75,12 +98,9 @@ Trigger an email alert to all registered emergency contacts.
   - `email`: Email of the person in distress
   - `reason`: Description of the emergency
   - `urgency_level`: Level of urgency (e.g., "High", "Critical")
-- **Response:**
-  ```json
-  {
-    "message": "Emergency alert sent to X contact(s)"
-  }
-  ```
+- **Response:** `200 ok`
+
+
 
 ## Models
 

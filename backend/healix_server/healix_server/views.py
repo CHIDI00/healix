@@ -101,11 +101,11 @@ def vitals_pull(request):
     return Response(VitalSignsSerializer(vital).data)
 
 
-@api_view(['POST'])
+@api_view(['GET', 'POST'])
 @permission_classes([IsAuthenticated])
 def emergency_contacts(request):
     # return list of contacts
-    if request.method == 'POST':
+    if request.method == 'GET':
         contacts = EmergencyContact.objects.all()
         json_data = []
         for contact in contacts:
@@ -113,7 +113,12 @@ def emergency_contacts(request):
                 'name': contact.name,
                 'email': contact.email
             })
-        return Response({"contacts": json_data})
+        return Response({"contacts": json_data}, safe=False)
+    elif request.method == 'POST':
+        name = request.data.get('name')
+        email = request.data.get('email')
+        EmergencyContact.objects.create(name=name, email=email)
+        return Response(status=status.HTTP_201_CREATED)
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
