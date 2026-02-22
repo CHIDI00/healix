@@ -31,7 +31,6 @@ Register a new user account.
   "username": "john_doe",
   "email": "john@example.com",
   "password": "SecurePass123!",
-  "password2": "SecurePass123!",
   "first_name": "John",
   "last_name": "Doe"
 }
@@ -43,7 +42,6 @@ Register a new user account.
 | username | string | Yes | Unique username |
 | email | string | Yes | Unique email address |
 | password | string | Yes | Password (must meet validation requirements) |
-| password2 | string | Yes | Password confirmation (must match password) |
 | first_name | string | No | User's first name |
 | last_name | string | No | User's last name |
 
