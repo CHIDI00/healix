@@ -322,7 +322,7 @@ WantedBy=multi-user.target
     with open(service_path, 'w') as f:
         f.write(service_content)
     
-    print(f"✅ Installed service at {service_path}")
+    print(f"Installed service at {service_path}")
     print("\nTo start service:")
     if os.geteuid() == 0:
         print("  systemctl enable oraimo-watch")
