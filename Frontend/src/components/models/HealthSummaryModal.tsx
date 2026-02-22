@@ -54,7 +54,7 @@ const HealthSummaryModal = ({ open, onOpenChange }: HealthSummaryModalProps) => 
           <div className="flex items-center justify-between border-b border-slate-100 pb-4">
             <div className="flex items-center gap-2">
               <FileText className="h-4 w-4 text-indigo-500" />
-              <span className="text-sm font-semibold text-slate-700">OmniCare AI Clinical EMR</span>
+              <span className="text-sm font-semibold text-slate-700">Healix Clinical EMR</span>
             </div>
             <span className="text-[10px] text-slate-400">Generated: {today} | Auth: System AI</span>
           </div>
