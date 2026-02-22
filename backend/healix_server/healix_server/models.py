@@ -7,7 +7,7 @@ class VitalSigns(models.Model):
     Stores vital signs measurements that indicate basic body functions
     and physiological status.
     """
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='vital_signs')
+    user = models.CharField(max_length=255)
     timestamp = models.CharField(max_length=255)
     
     # Vital Signs Fields

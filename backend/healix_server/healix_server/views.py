@@ -80,7 +80,6 @@ def vitals_push(request):
     """
     if request.method == 'POST':
         serializer = VitalSignsSerializer(data=request.data)
-        print(request.data)
         if serializer.is_valid():
             serializer.save(user=request.user)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
