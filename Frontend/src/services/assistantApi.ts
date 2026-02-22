@@ -1,9 +1,3 @@
-/**
- * Assistant API Service
- * Handles all communication with the Healthcare AI Assistant backend endpoints
- * Documentation: /api_docs/assistant_api.md
- */
-
 const API_BASE_URL = `${import.meta.env.VITE_API_BASE_URL}assistant`;
 
 export interface ChatMessage {
@@ -136,9 +130,9 @@ const handleResponse = async <T>(response: Response): Promise<T> => {
   return {} as T;
 };
 
-/**
- * Chat with the AI Assistant
- * POST /chat/
+/*
+Chat with the AI Assistant
+POST /chat/
  */
 export const chatWithAssistant = async (
   payload: ChatMessage,
@@ -151,9 +145,9 @@ export const chatWithAssistant = async (
   return handleResponse<ChatResponse>(response);
 };
 
-/**
- * Get list of user's conversations
- * GET /conversations/
+/*
+Get list of user's conversations
+GET /conversations/
  */
 export const getConversations = async (
   page: number = 1,
@@ -176,9 +170,9 @@ export const getConversations = async (
   return handleResponse<ConversationListResponse>(response);
 };
 
-/**
- * Get a specific conversation with all messages
- * GET /conversations/{id}/
+/*
+ Get a specific conversation with all messages
+ GET /conversations/{id}/
  */
 export const getConversationDetail = async (
   conversationId: number,
@@ -193,9 +187,9 @@ export const getConversationDetail = async (
   return handleResponse<ConversationDetail>(response);
 };
 
-/**
- * Update conversation (title, active status)
- * PUT /conversations/{id}/
+/*
+Update conversation (title, active status)
+PUT /conversations/{id}/
  */
 export const updateConversation = async (
   conversationId: number,
@@ -212,9 +206,9 @@ export const updateConversation = async (
   return handleResponse<ConversationDetail>(response);
 };
 
-/**
- * Delete a conversation
- * DELETE /conversations/{id}/
+/*
+Delete a conversation
+DELETE /conversations/{id}/
  */
 export const deleteConversation = async (
   conversationId: number,
@@ -231,9 +225,9 @@ export const deleteConversation = async (
   }
 };
 
-/**
- * Generate health summary
- * POST /health-summary/
+/*
+Generate health summary
+POST /health-summary/
  */
 export const generateHealthSummary = async (
   payload: HealthSummaryRequest = {},
@@ -246,9 +240,9 @@ export const generateHealthSummary = async (
   return handleResponse<HealthSummaryResponse>(response);
 };
 
-/**
- * Get wellness recommendations
- * POST /wellness-recommendations/
+/*
+Get wellness recommendations
+POST /wellness-recommendations/
  */
 export const getWellnessRecommendations = async (
   payload: WellnessRecommendationsRequest = {},
@@ -261,9 +255,9 @@ export const getWellnessRecommendations = async (
   return handleResponse<WellnessRecommendationsResponse>(response);
 };
 
-/**
- * Get health insights
- * GET /insights/
+/*
+Get health insights
+GET /insights/
  */
 export const getHealthInsights = async (
   page: number = 1,
@@ -290,9 +284,9 @@ export const getHealthInsights = async (
   return handleResponse(response);
 };
 
-/**
- * Get available tools
- * GET /tools/
+/*
+Get available tools
+GET /tools/
  */
 export const getAvailableTools = async (filters?: {
   category?: string;
@@ -312,9 +306,9 @@ export const getAvailableTools = async (filters?: {
   return handleResponse(response);
 };
 
-/**
- * Get assistant status (no auth required)
- * GET /status/
+/*
+Get assistant status (no auth required)
+GET /status/
  */
 export const getAssistantStatus = async () => {
   const response = await fetch(`${API_BASE_URL}/status/`, {
