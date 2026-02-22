@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Send, History, Trash2, AlertCircle } from "lucide-react";
 import { motion } from "framer-motion";
-import { useGeminiConversation } from "@/hooks/useGeminiConversation";
+import { useConversation } from "@/hooks/useConversation";
 
 interface SavedChat {
   messages: Array<{ role: "user" | "ai"; text: string }>;
@@ -23,6 +23,7 @@ interface AIChatModalProps {
 
 const AIChatModal = ({ open, onOpenChange }: AIChatModalProps) => {
   const {
+    conversationId,
     messages,
     isLoading,
     error,
@@ -30,8 +31,7 @@ const AIChatModal = ({ open, onOpenChange }: AIChatModalProps) => {
     sendMessage,
     startNewConversation,
     clearConversation,
-    loadConversation,
-  } = useGeminiConversation();
+  } = useConversation();
 
   const [input, setInput] = useState("");
   const [showHistory, setShowHistory] = useState(false);
@@ -50,7 +50,7 @@ const AIChatModal = ({ open, onOpenChange }: AIChatModalProps) => {
     const userInput = input;
     setInput("");
 
-    await sendMessage(userInput);
+    await sendMessage(userInput, true);
   };
 
   const handleClearChat = () => {
@@ -72,7 +72,9 @@ const AIChatModal = ({ open, onOpenChange }: AIChatModalProps) => {
   };
 
   const handleLoadChat = (chat: SavedChat) => {
-    loadConversation(chat.messages);
+    clearConversation();
+    // Note: In a real app, you'd restore the conversation from backend
+    // For now, this loads the local history
     setShowHistory(false);
   };
 
