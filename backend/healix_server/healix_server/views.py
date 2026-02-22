@@ -7,7 +7,8 @@ from rest_framework.response import Response
 from rest_framework.authtoken.models import Token
 from rest_framework.authtoken.views import ObtainAuthToken
 
-from .serializers import RegisterSerializer, UserSerializer
+from .models import VitalSigns
+from .serializers import RegisterSerializer, UserSerializer, VitalSignsSerializer
 
 class RegisterView(generics.CreateAPIView):
     queryset = User.objects.all()
@@ -69,3 +70,23 @@ def update_profile(request):
         serializer.save()
         return Response(serializer.data)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['POST'])
+def vitals_push(request):
+    """
+    List all vitals or create a new vital sign entry
+    """
+    if request.method == 'POST':
+        serializer = VitalSignsSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save(user=request.user)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['GET'])
+def vitals_pull(request, pk):
+    vital = VitalSigns.objects.last()
+    return Response(VitalSignsSerializer(vital).data)
+
